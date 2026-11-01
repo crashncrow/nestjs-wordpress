@@ -19,8 +19,5 @@ describe('Health (e2e)', () => {
   });
 
   it('GET /health', () =>
-    request(app.getHttpServer())
-      .get('/health')
-      .expect(200)
-      .expect({ status: 'ok', library: '0.0.0' }));
+    request(app.getHttpServer()).get('/health').expect(200).expect({ status: 'ok' }));
 });
