@@ -5,7 +5,7 @@
   "license": "MIT",
   "packageManager": "pnpm@12.14.0",
   "engines": {
-    "node": ">=22.19"
+    "node": ">=22.12"
   },
   "scripts": {
     "wp:up": "bash docker/compose.sh up -d --wait",
