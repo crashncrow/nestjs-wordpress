@@ -56,11 +56,13 @@ async function start({
 
 const payload = {
   event: 'post.saved',
-  tags: ['post:9', 'type:post'],
   id: 9,
   type: 'post',
   slug: 'demo-post-3',
+  taxonomies: ['category', 'post_tag'],
 };
+// What the invalidation contract derives from that content change.
+const expectedTags = ['post:9', 'type:post', 'taxonomy:category', 'taxonomy:post_tag'];
 
 function send(
   target: INestApplication,
@@ -84,23 +86,21 @@ describe('webhook endpoint', () => {
     await posts.getBySlug('demo-post-3');
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
-    await send(server, payload).expect(200, { invalidated: payload.tags });
+    await send(server, payload).expect(200, { invalidated: expectedTags });
 
     await posts.getBySlug('demo-post-3');
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(listener.received).toHaveLength(1);
     expect(listener.received[0]).toBeInstanceOf(ContentChangedEvent);
-    expect(listener.received[0]).toMatchObject(payload);
+    expect(listener.received[0]).toMatchObject({ ...payload, tags: expectedTags });
   });
 
   it('rejects a wrong signature, a tampered body and missing headers', async () => {
     const { app: server, listener } = await start();
     await send(server, payload, signWebhook('wrong-secret', JSON.stringify(payload))).expect(401);
-    await send(
-      server,
-      { ...payload, tags: ['everything'] },
-      signWebhook(SECRET, JSON.stringify(payload)),
-    ).expect(401);
+    await send(server, { ...payload, id: 1 }, signWebhook(SECRET, JSON.stringify(payload))).expect(
+      401,
+    );
     await send(server, payload, {}).expect(401);
     expect(listener.received).toHaveLength(0);
   });
@@ -116,7 +116,8 @@ describe('webhook endpoint', () => {
   it('rejects a correctly signed but malformed payload', async () => {
     const { app: server } = await start();
     await send(server, { ...payload, event: 'post.exploded' }).expect(400);
-    await send(server, { ...payload, tags: 'post:9' }).expect(400);
+    await send(server, { ...payload, taxonomies: 'category' }).expect(400);
+    await send(server, { ...payload, id: '9' }).expect(400);
   });
 
   it('answers 500 (and logs how to fix it) when the app was created without rawBody', async () => {

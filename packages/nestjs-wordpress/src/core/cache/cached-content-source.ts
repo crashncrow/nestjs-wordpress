@@ -1,3 +1,4 @@
+import { type ContentRead, tagsForResult } from '../../invalidation/index.js';
 import type {
   ContentSource,
   EntryListQuery,
@@ -8,14 +9,14 @@ import type {
   TermLookup,
 } from '../content-source.interface.js';
 import type { Entry, Menu, Paginated, Term } from '../dto/index.js';
-import { ContentTags, entryTags, menuTags, termTags } from './content-tags.js';
 import type { TaggedCache } from './tagged-cache.interface.js';
 
 /**
  * Caching decorator around any {@link ContentSource} (decorator pattern): same interface,
  * extra behavior. Because it only sees normalized DTOs, it works for every adapter.
  *
- * - Tags are derived from the *result*, so an entry is tagged with the terms it embeds.
+ * - Each call is described as a `ContentRead`, which is both the cache key and the input to
+ *   the invalidation contract (`tagsForResult`), so tags always match what was read.
  * - Errors are never cached (a 404 now may be published content in a minute).
  * - Preview reads bypass the cache entirely: drafts must never be served to anonymous users.
  * - Concurrent misses for the same key share one upstream request (no cache stampede).
@@ -34,57 +35,32 @@ export class CachedContentSource implements ContentSource {
     options: ReadOptions = {},
   ): Promise<Paginated<Entry>> {
     if (options.preview) return this.inner.listEntries(type, query, options);
-    return this.cached(
-      key('entries', type, query),
-      () => this.inner.listEntries(type, query),
-      (page) => [
-        ContentTags.type(type),
-        // Lists filtered by term slug change when a term is created or renamed.
-        ...Object.keys(query.taxonomies ?? {}).map(ContentTags.taxonomy),
-        ...page.items.flatMap(entryTags),
-      ],
-    );
+    return this.cached({ kind: 'entries', type, query }, () => this.inner.listEntries(type, query));
   }
 
   getEntry(type: string, lookup: EntryLookup, options: ReadOptions = {}): Promise<Entry> {
     if (options.preview) return this.inner.getEntry(type, lookup, options);
-    return this.cached(
-      key('entry', type, lookup),
-      () => this.inner.getEntry(type, lookup),
-      (entry) => [
-        ...entryTags(entry),
-        // A path depends on every ancestor's slug. Rather than tracking ancestors, path
-        // lookups are tied to the whole type: coarser, but never stale.
-        ...('path' in lookup ? [ContentTags.type(type)] : []),
-      ],
-    );
+    return this.cached({ kind: 'entry', type, lookup }, () => this.inner.getEntry(type, lookup));
   }
 
   listTerms(taxonomy: string, query: TermListQuery = {}): Promise<Paginated<Term>> {
-    return this.cached(
-      key('terms', taxonomy, query),
-      () => this.inner.listTerms(taxonomy, query),
-      (page) => [ContentTags.taxonomy(taxonomy), ...page.items.flatMap(termTags)],
+    return this.cached({ kind: 'terms', taxonomy, query }, () =>
+      this.inner.listTerms(taxonomy, query),
     );
   }
 
   getTerm(taxonomy: string, lookup: TermLookup): Promise<Term> {
-    return this.cached(
-      key('term', taxonomy, lookup),
-      () => this.inner.getTerm(taxonomy, lookup),
-      termTags,
+    return this.cached({ kind: 'term', taxonomy, lookup }, () =>
+      this.inner.getTerm(taxonomy, lookup),
     );
   }
 
   getMenu(lookup: MenuLookup): Promise<Menu> {
-    return this.cached(key('menu', lookup), () => this.inner.getMenu(lookup), menuTags);
+    return this.cached({ kind: 'menu', lookup }, () => this.inner.getMenu(lookup));
   }
 
-  private async cached<T>(
-    cacheKey: string,
-    load: () => Promise<T>,
-    tagsOf: (value: T) => string[],
-  ): Promise<T> {
+  private async cached<T>(read: ContentRead, load: () => Promise<T>): Promise<T> {
+    const cacheKey = stableStringify(read);
     const hit = await this.cache.get<T>(cacheKey);
     if (hit !== undefined) return hit;
 
@@ -94,7 +70,7 @@ export class CachedContentSource implements ContentSource {
     const request = (async () => {
       try {
         const value = await load();
-        await this.cache.set(cacheKey, value, [...new Set(tagsOf(value))]);
+        await this.cache.set(cacheKey, value, tagsForResult(read, value as never));
         return value;
       } finally {
         this.inFlight.delete(cacheKey);
@@ -105,11 +81,7 @@ export class CachedContentSource implements ContentSource {
   }
 }
 
-/** Deterministic key: object keys are sorted so `{a,b}` and `{b,a}` hit the same entry. */
-function key(...parts: unknown[]): string {
-  return parts.map((part) => (typeof part === 'string' ? part : stableStringify(part))).join('|');
-}
-
+/** Deterministic key: object keys are sorted and `undefined` dropped, so equal reads share a key. */
 function stableStringify(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
   if (value && typeof value === 'object') {

@@ -26,6 +26,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./invalidation": {
+      "types": "./dist/invalidation/index.d.ts",
+      "default": "./dist/invalidation/index.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [

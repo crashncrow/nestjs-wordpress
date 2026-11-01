@@ -12,10 +12,11 @@ import type { CacheInvalidator } from '../../core/cache/tagged-cache.interface.j
 import { CACHE_INVALIDATOR } from '../../core/tokens.js';
 import type { ResolvedWordPressOptions } from '../wordpress-options.interface.js';
 import { WORDPRESS_RESOLVED_OPTIONS } from '../wordpress.tokens.js';
+import { tagsForChange } from '../../invalidation/index.js';
 import { ContentChangedEvent } from './content-changed.event.js';
 import { ContentEventPublisher } from './content-event-publisher.js';
 import { HmacSignatureGuard } from './hmac-signature.guard.js';
-import { parseWebhookPayload } from './webhook-payload.js';
+import { parseContentChange } from './webhook-payload.js';
 
 export const DEFAULT_WEBHOOK_PATH = 'webhooks/wordpress';
 
@@ -46,18 +47,12 @@ export function createWebhookController(path: string): Type<unknown> {
     @HttpCode(HttpStatus.OK)
     @UseGuards(HmacSignatureGuard)
     async receive(@Body() body: unknown): Promise<{ invalidated: string[] }> {
-      const payload = parseWebhookPayload(body);
-      await this.invalidator.invalidateTags(payload.tags);
-      await this.events.publish(
-        new ContentChangedEvent(
-          payload.event,
-          payload.tags,
-          payload.id,
-          payload.type,
-          payload.slug,
-        ),
-      );
-      return { invalidated: payload.tags };
+      // The payload says what changed; the invalidation contract decides which tags that hits.
+      const change = parseContentChange(body);
+      const tags = tagsForChange(change);
+      await this.invalidator.invalidateTags(tags);
+      await this.events.publish(new ContentChangedEvent({ ...change, tags }));
+      return { invalidated: tags };
     }
   }
   return WordPressWebhookController;

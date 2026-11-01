@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { CacheableTaggedCache } from '../../src/core/cache/cacheable-tagged-cache.js';
 import { CachedContentSource } from '../../src/core/cache/cached-content-source.js';
-import { ContentTags } from '../../src/core/cache/content-tags.js';
+import { ContentTags } from '../../src/invalidation/index.js';
 import type { ContentSource } from '../../src/core/content-source.interface.js';
 import type { Entry, Menu, Paginated } from '../../src/core/dto/index.js';
 import { ContentNotFoundException } from '../../src/core/errors/content-source.exception.js';

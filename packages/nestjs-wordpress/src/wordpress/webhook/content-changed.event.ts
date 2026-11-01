@@ -1,38 +1,35 @@
+import type { ContentChange, ContentChangeEvent } from '../../invalidation/index.js';
+
 /** Name of the event emitted (through `@nestjs/event-emitter`) after a webhook is processed. */
 export const WORDPRESS_CONTENT_UPDATED = 'wordpress.content.updated';
 
-export type ContentChangeKind =
-  'post.saved' | 'post.deleted' | 'term.saved' | 'term.deleted' | 'menu.saved' | 'menu.deleted';
-
-/** Body sent by the `nestjs-wordpress-webhooks` plugin. */
-export interface WebhookPayload {
-  event: ContentChangeKind;
-  /** Cache tags affected by the change (see `ContentTags`). */
-  tags: string[];
-  id: number;
-  /** Post type, taxonomy, or `nav_menu`. */
-  type: string;
-  slug: string;
-}
-
 /**
- * Payload of {@link WORDPRESS_CONTENT_UPDATED}. By the time listeners run, the library's own
- * cache entries for `tags` are already invalidated; listeners propagate the change further
- * (e.g. call Next.js `revalidateTag`, purge a CDN, notify clients).
+ * Payload of {@link WORDPRESS_CONTENT_UPDATED}: the content change plus the cache tags the
+ * library invalidated for it. By the time listeners run, those entries are already gone;
+ * listeners propagate the change further (e.g. Next.js `revalidateTag`, a CDN purge).
  *
  * ```ts
  * @OnEvent(WORDPRESS_CONTENT_UPDATED)
  * onContentUpdated(event: ContentChangedEvent) { ... }
  * ```
  */
-export class ContentChangedEvent implements WebhookPayload {
+export class ContentChangedEvent implements ContentChange {
+  readonly event: ContentChangeEvent;
+  readonly type: string;
+  readonly id: number;
+  readonly slug: string;
+  readonly taxonomies: string[] | undefined;
+  /** Cache tags invalidated for this change (from `tagsForChange`). */
+  readonly tags: string[];
   readonly receivedAt = new Date().toISOString();
 
-  constructor(
-    readonly event: ContentChangeKind,
-    readonly tags: string[],
-    readonly id: number,
-    readonly type: string,
-    readonly slug: string,
-  ) {}
+  // Named fields, not positional arguments: `type` and `slug` are both strings and easy to swap.
+  constructor(change: ContentChange & { tags: string[] }) {
+    this.event = change.event;
+    this.type = change.type;
+    this.id = change.id;
+    this.slug = change.slug;
+    this.taxonomies = change.taxonomies;
+    this.tags = change.tags;
+  }
 }

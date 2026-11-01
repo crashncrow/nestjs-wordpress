@@ -20,7 +20,15 @@ export type {
 } from './core/content-source.interface.js';
 export { CACHE_INVALIDATOR, CONTENT_SOURCE, TAGGED_CACHE } from './core/tokens.js';
 export type { CacheInvalidator, TaggedCache } from './core/cache/tagged-cache.interface.js';
-export { ContentTags } from './core/cache/content-tags.js';
+export {
+  CONTENT_CHANGE_EVENTS,
+  ContentTags,
+  tagsForChange,
+  tagsForResult,
+  type ContentChange,
+  type ContentChangeEvent,
+  type ContentRead,
+} from './invalidation/index.js';
 export { PostsService, type PostListQuery } from './core/services/posts.service.js';
 export { PagesService, type PageListQuery } from './core/services/pages.service.js';
 export { EntriesService } from './core/services/entries.service.js';
@@ -41,8 +49,6 @@ export type { WordPressModuleExtras } from './wordpress/wordpress.module-definit
 export {
   ContentChangedEvent,
   WORDPRESS_CONTENT_UPDATED,
-  type ContentChangeKind,
-  type WebhookPayload,
 } from './wordpress/webhook/content-changed.event.js';
 export {
   HmacSignatureGuard,
