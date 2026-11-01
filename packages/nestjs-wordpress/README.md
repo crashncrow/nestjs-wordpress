@@ -359,8 +359,6 @@ pnpm dev                     # terminal 1: NestJS demo on :3000
 pnpm dev:web                 # terminal 2: Next.js on :3001
 ```
 
-See [CONTRIBUTING.md](https://github.com/crashncrow/nestjs-wordpress/blob/main/CONTRIBUTING.md) for tests and the full workflow.
-
 ## Known limitations
 
 - **Pretty permalinks are required:** the `?rest_route=` fallback is not supported.
@@ -375,6 +373,16 @@ See [CONTRIBUTING.md](https://github.com/crashncrow/nestjs-wordpress/blob/main/C
 - **More `ContentSource` adapters** (e.g. Webflow), enabling gradual migrations
 - **Fastify coverage** and a `?rest_route=` fallback
 
+## Contributing
+
+Bugs and ideas: [issues](https://github.com/crashncrow/nestjs-wordpress/issues). Setup, commands and the rules for code changes: [CONTRIBUTING.md](https://github.com/crashncrow/nestjs-wordpress/blob/main/CONTRIBUTING.md). Security problems: report them privately, see [SECURITY.md](https://github.com/crashncrow/nestjs-wordpress/blob/main/SECURITY.md).
+
 ## License
 
-[MIT](./LICENSE)
+This project is licensed under the [MIT License](https://github.com/crashncrow/nestjs-wordpress/blob/main/LICENSE).
+
+---
+
+<p align="center">
+  <sub>Made with 🧉 by <a href="https://nnaro.dev">nnaro.dev</a></sub>
+</p>

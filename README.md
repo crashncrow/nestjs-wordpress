@@ -2,6 +2,9 @@
 
 WordPress as a headless content source for NestJS, plus everything needed to develop and demo it.
 
+[![CI](https://github.com/crashncrow/nestjs-wordpress/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/crashncrow/nestjs-wordpress/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 **→ Library documentation: [packages/nestjs-wordpress/README.md](packages/nestjs-wordpress/README.md)**
 
 ```
@@ -53,4 +56,14 @@ Edit a post's title in WordPress and reload: the change propagates through the w
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Licensed under [MIT](LICENSE).
+Bugs and ideas: [issues](https://github.com/crashncrow/nestjs-wordpress/issues). Setup, commands and the rules for code changes: [CONTRIBUTING.md](CONTRIBUTING.md). Security problems: report them privately, see [SECURITY.md](SECURITY.md).
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+<p align="center">
+  <sub>Made with 🧉 by <a href="https://nnaro.dev">nnaro.dev</a></sub>
+</p>
