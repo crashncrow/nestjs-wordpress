@@ -52,17 +52,17 @@ packages/nestjs-wordpress/src/
 
 ## 2. Tooling
 
-| Concern         | Choice                                                                                                              | Why                                                                                                 |
-| --------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Package manager | pnpm workspaces, `workspace:*`                                                                                      | As requested.                                                                                       |
-| Language        | TypeScript 6.0.x, `strict`, `module/moduleResolution: nodenext`, `experimentalDecorators` + `emitDecoratorMetadata` | Same as the official Nest 12 starter. TS 7 later.                                                   |
-| Library build   | `tsc -p tsconfig.build.json` → `dist/` (ESM `.js` + `.d.ts` + maps)                                                 | esbuild-based bundlers drop decorator metadata.                                                     |
-| `exports`       | `{ ".": { "types", "default" } }`, `"type": "module"`, `sideEffects: false`                                         | ESM-only.                                                                                           |
-| Tests           | Vitest 4 (+ supertest for e2e)                                                                                      | Nest 12 starter default. Phase 1 verifies decorator metadata under Vitest; fallback `unplugin-swc`. |
-| Lint / format   | oxlint + Prettier                                                                                                   | Nest 12 starter default.                                                                            |
-| Package checks  | `publint` + `@arethetypeswrong/cli`                                                                                 | Catches broken `exports`/types before publishing.                                                   |
-| Releases        | Changesets                                                                                                          | Conventional changelog per package.                                                                 |
-| Node            | `engines: >=22.19` (keyv 6 floor); CI matrix 22 / 24 / 26                                                           |                                                                                                     |
+| Concern         | Choice                                                                                                              | Why                                                                                  |
+| --------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Package manager | pnpm workspaces, `workspace:*`                                                                                      | As requested.                                                                        |
+| Language        | TypeScript 6.0.x, `strict`, `module/moduleResolution: nodenext`, `experimentalDecorators` + `emitDecoratorMetadata` | Same as the official Nest 12 starter. TS 7 later.                                    |
+| Library build   | `tsc -p tsconfig.build.json` → `dist/` (ESM `.js` + `.d.ts` + maps)                                                 | esbuild-based bundlers drop decorator metadata.                                      |
+| `exports`       | `{ ".": { "types", "default" } }`, `"type": "module"`, `sideEffects: false`                                         | ESM-only.                                                                            |
+| Tests           | Vitest 5 (+ supertest for e2e)                                                                                      | v5 emits decorator metadata natively (guarded by `test/decorator-metadata.spec.ts`). |
+| Lint / format   | oxlint + Prettier                                                                                                   | Nest 12 starter default.                                                             |
+| Package checks  | `publint` + `@arethetypeswrong/cli`                                                                                 | Catches broken `exports`/types before publishing.                                    |
+| Releases        | Changesets                                                                                                          | Conventional changelog per package.                                                  |
+| Node            | `engines: >=22.19` (keyv 6 floor); CI matrix 22 / 24 / 26                                                           |                                                                                      |
 
 **Library dependencies:**
 
