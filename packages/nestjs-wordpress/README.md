@@ -350,14 +350,13 @@ X-NWP-Signature: sha256=<hex HMAC-SHA256 of "<timestamp>.<raw body>" with the se
 
 ## Local development environment
 
-The [repository](https://github.com/crashncrow/nestjs-wordpress) contains a Docker stack (WordPress 7.1, MySQL 9.7, Redis 8), a seed script, a NestJS demo and a Next.js frontend:
+The [repository](https://github.com/crashncrow/nestjs-wordpress) contains a Docker stack (WordPress 7.1, MySQL 9.7, Redis 8), a seed script, a NestJS demo and a Next.js frontend. It needs Node ≥ 22.12, pnpm 12 (`corepack enable`) and Docker:
 
 ```bash
 pnpm install
-pnpm wp:up      # http://localhost:8080 (admin / admin)
-pnpm wp:seed    # idempotent demo content + apps/demo/.env + apps/web/.env.local
-pnpm dev        # NestJS demo on :3000
-pnpm dev:web    # Next.js on :3001
+pnpm wp:up && pnpm wp:seed   # http://localhost:8080 (admin / admin)
+pnpm dev                     # terminal 1: NestJS demo on :3000
+pnpm dev:web                 # terminal 2: Next.js on :3001
 ```
 
 See [CONTRIBUTING.md](https://github.com/crashncrow/nestjs-wordpress/blob/main/CONTRIBUTING.md) for tests and the full workflow.

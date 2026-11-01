@@ -23,16 +23,33 @@ WordPress ──(REST)──▶ NestJS + nestjs-wordpress ──(JSON)──▶ 
 
 ## Quick start
 
-Requirements: Node ≥ 22.12, pnpm, Docker.
+**Requirements**
+
+- Node.js ≥ 22.12
+- pnpm 12 (run `corepack enable` once to use the version pinned in `package.json`)
+- Docker, running
+
+> **macOS:** if the repository lives outside `/Users` (e.g. on another volume), add its folder in Docker Desktop → Settings → Resources → File sharing. Otherwise the WordPress plugin cannot be mounted.
 
 ```bash
 pnpm install
 pnpm wp:up && pnpm wp:seed   # WordPress at http://localhost:8080 (admin / admin)
-pnpm dev                     # NestJS demo at http://localhost:3000 (try /home, /posts, /menus/primary)
-pnpm dev:web                 # Next.js at http://localhost:3001
+```
+
+Then, in two terminals:
+
+```bash
+pnpm dev       # terminal 1: NestJS demo at http://localhost:3000 (try /home, /posts, /menus/primary)
+pnpm dev:web   # terminal 2: Next.js at http://localhost:3001 (needs the NestJS demo running)
 ```
 
 Edit a post's title in WordPress and reload: the change propagates through the webhook, the NestJS cache and the Next.js cache.
+
+**Good to know**
+
+- WordPress sends webhooks to `http://host.docker.internal:3000`, so keep the NestJS demo on port 3000.
+- `pnpm wp:seed` is idempotent, but it rotates the demo's application password. Restart `pnpm dev` and `pnpm dev:web` after re-seeding.
+- `pnpm wp:down` stops the stack and keeps the data. To start from scratch, run `bash docker/compose.sh down -v`.
 
 ## Contributing
 
