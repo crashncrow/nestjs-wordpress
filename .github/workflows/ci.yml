@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: Lint, typecheck, build, unit tests (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24, 26]
+    services:
+      # Lets the Redis integration test (two app instances sharing one cache) run in CI.
+      redis:
+        image: redis:8.8
+        ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6 # version comes from "packageManager" in package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      # The apps type-check against the library's published types (dist), so build it first.
+      - run: pnpm --filter nestjs-wordpress build
+      - run: pnpm typecheck
+      - run: pnpm build
+      - run: pnpm test
+      - name: Package checks (publint, are-the-types-wrong)
+        if: matrix.node == 24
+        run: pnpm --filter nestjs-wordpress check:package
+
+  php:
+    name: WordPress plugin (PHPCS + WPCS)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wordpress-plugin
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@2.40.0
+        with:
+          php-version: '8.1' # the plugin's minimum
+          tools: composer
+          coverage: none
+      - run: composer install --no-interaction --no-progress
+      - run: vendor/bin/phpcs
+      - run: php -l nestjs-wordpress-webhooks/nestjs-wordpress-webhooks.php && php -l nestjs-wordpress-webhooks/includes/class-nwp-webhooks.php
+
+  e2e:
+    name: E2E (Docker WordPress + webhook loop)
+    needs: checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm wp:up
+      - run: pnpm wp:seed
+      # Builds the library, then runs the demo e2e suite. The webhook tests edit content with
+      # WP-CLI; the plugin calls the test app on the host through host.docker.internal.
+      - run: pnpm test:e2e
+      - name: Docker logs
+        if: failure()
+        run: bash docker/compose.sh logs --no-color --tail 200
