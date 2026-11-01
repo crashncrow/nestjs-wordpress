@@ -13,6 +13,7 @@ nestjs-wordpress/
   .changeset/                  # versioning + CHANGELOG generation
   packages/nestjs-wordpress/   # the publishable library
   apps/demo/                   # NestJS 12 example app (private)
+  apps/web/                    # Next.js frontend consuming apps/demo (phase 3.5)
   wordpress-plugin/nestjs-wordpress-webhooks/
   docker/  docker-compose.yml  seed.sh
   docs/  research.md  plan.md
@@ -230,9 +231,12 @@ The filter is not applied globally by default: the app opts in.
 ## 5. Phases
 
 0. ✅ Research.
-1. Scaffold + tooling + Docker + idempotent seed. Verified by `pnpm wp:up && pnpm wp:seed` and a `curl` checklist.
+1. ✅ Scaffold + tooling + Docker + idempotent seed. Verified by `pnpm wp:up && pnpm wp:seed` and a `curl` checklist.
 2. v0.1 read API + demo (`/posts`, `/posts/:slug`, `/pages/*path`, `/menus/:location`, `/home`) + unit tests (mocked `fetch`) + read e2e.
 3. Cache, webhook guard/controller, PHP plugin, webhook e2e (`wp post update` via WP-CLI → poll until invalidated + event received).
+   3.5. Next.js demo in `apps/web` (App Router): posts list/detail, hierarchical page, menu, all fetched from the Nest demo with
+   `next: { tags }` matching the library's cache tags. The Nest demo listens to `wordpress.content.updated` and calls a
+   signed Next revalidation endpoint, closing the loop WP → Nest → Next. CI: `next build` + typecheck only.
 4. CI, README, CONTRIBUTING, CHANGELOG, publint/attw, `npm pack --dry-run` (no publish).
 
 ## Open points
