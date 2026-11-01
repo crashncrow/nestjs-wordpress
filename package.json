@@ -16,6 +16,7 @@
     "build": "pnpm -r run build",
     "typecheck": "pnpm -r run typecheck",
     "lint": "oxlint && prettier --check .",
+    "lint:php": "bash wordpress-plugin/lint.sh",
     "format": "prettier --write .",
     "test": "pnpm -r run test",
     "test:e2e": "pnpm --filter nestjs-wordpress build && pnpm --filter demo run test:e2e"

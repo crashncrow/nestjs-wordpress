@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<ruleset name="nestjs-wordpress-webhooks">
+	<description>WordPress Coding Standards for the webhook plugin.</description>
+
+	<file>nestjs-wordpress-webhooks</file>
+	<arg name="extensions" value="php"/>
+	<arg value="sp"/>
+
+	<config name="minimum_wp_version" value="6.5"/>
+	<config name="testVersion" value="8.1-"/>
+
+	<rule ref="WordPress"/>
+
+	<rule ref="WordPress.WP.I18n">
+		<properties>
+			<property name="text_domain" type="array">
+				<element value="nestjs-wordpress-webhooks"/>
+			</property>
+		</properties>
+	</rule>
+</ruleset>
