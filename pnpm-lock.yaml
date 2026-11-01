@@ -249,12 +249,18 @@ importers:
       '@nestjs/testing':
         specifier: ^12.3.2
         version: 12.3.2(@nestjs/common@12.3.2(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@12.3.2)(@nestjs/platform-express@12.3.2)
+      '@types/supertest':
+        specifier: ^7.2.1
+        version: 7.2.1
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
       rxjs:
         specifier: ^7.8.2
         version: 7.8.2
+      supertest:
+        specifier: ^7.3.1
+        version: 7.3.1
       vitest:
         specifier: ^5.0.5
         version: 5.0.5(@types/node@24.19.2)(vite@8.3.5(@types/node@24.19.2))

@@ -1,4 +1,11 @@
-import { type ArgumentsHost, Catch, type ExceptionFilter, HttpStatus } from '@nestjs/common';
+import { STATUS_CODES } from 'node:http';
+import {
+  type ArgumentsHost,
+  Catch,
+  type ExceptionFilter,
+  HttpStatus,
+  Logger,
+} from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import {
   ContentBadRequestException,
@@ -28,10 +35,13 @@ const STATUS_BY_EXCEPTION = new Map<Function, HttpStatus>([
  * per controller with `@UseFilters(ContentExceptionFilter)`. It uses `HttpAdapterHost`
  * instead of Express' `res` so it works on both the Express and Fastify platforms.
  *
- * Upstream details (status, code, message) are intentionally not leaked to clients.
+ * Upstream details (status, code, message) are intentionally not leaked to clients; they are
+ * logged instead when the failure is on the server side (5xx).
  */
 @Catch(ContentSourceException)
 export class ContentExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(ContentExceptionFilter.name);
+
   constructor(private readonly adapterHost: HttpAdapterHost) {}
 
   catch(exception: ContentSourceException, host: ArgumentsHost): void {
@@ -39,9 +49,12 @@ export class ContentExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const status = STATUS_BY_EXCEPTION.get(exception.constructor) ?? HttpStatus.BAD_GATEWAY;
 
+    if (status >= 500) this.logger.error(exception.message, exception.stack);
+
     httpAdapter.reply(
       ctx.getResponse(),
-      { statusCode: status, error: HttpStatus[status], message: publicMessage(status) },
+      // Same body shape as Nest's built-in HttpException responses.
+      { statusCode: status, error: STATUS_CODES[status], message: publicMessage(status) },
       status,
     );
   }
