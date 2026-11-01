@@ -30,6 +30,10 @@
       "types": "./dist/invalidation/index.d.ts",
       "default": "./dist/invalidation/index.js"
     },
+    "./signature": {
+      "types": "./dist/signature/index.d.ts",
+      "default": "./dist/signature/index.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [

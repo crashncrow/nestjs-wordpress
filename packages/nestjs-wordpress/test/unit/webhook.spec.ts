@@ -64,17 +64,27 @@ const payload = {
 // What the invalidation contract derives from that content change.
 const expectedTags = ['post:9', 'type:post', 'taxonomy:category', 'taxonomy:post_tag'];
 
+/**
+ * Posts `body` signed with SECRET, unless other headers (or a promise of them, since signing
+ * is async) are given. Returns `{ expect }` so call sites read like plain supertest.
+ */
 function send(
   target: INestApplication,
   body: object,
-  headers: Record<string, string> = signWebhook(SECRET, JSON.stringify(body)),
+  headers?: Record<string, string> | Promise<Record<string, string>>,
   path = '/webhooks/wordpress',
 ) {
-  return request(target.getHttpServer())
-    .post(path)
-    .set('content-type', 'application/json')
-    .set(headers)
-    .send(JSON.stringify(body));
+  const raw = JSON.stringify(body);
+  return {
+    expect: async (status: number, expectedBody?: unknown) => {
+      const test = request(target.getHttpServer())
+        .post(path)
+        .set('content-type', 'application/json')
+        .set(await (headers ?? signWebhook(SECRET, raw)))
+        .send(raw);
+      return expectedBody === undefined ? test.expect(status) : test.expect(status, expectedBody);
+    },
+  };
 }
 
 describe('webhook endpoint', () => {
@@ -108,9 +118,11 @@ describe('webhook endpoint', () => {
   it('rejects timestamps outside the tolerance window (replay protection)', async () => {
     const { app: server } = await start();
     const tenMinutesAgo = Math.floor(Date.now() / 1000) - 600;
-    await send(server, payload, signWebhook(SECRET, JSON.stringify(payload), tenMinutesAgo)).expect(
-      401,
-    );
+    await send(
+      server,
+      payload,
+      signWebhook(SECRET, JSON.stringify(payload), { now: tenMinutesAgo * 1000 }),
+    ).expect(401);
   });
 
   it('rejects a correctly signed but malformed payload', async () => {

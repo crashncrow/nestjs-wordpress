@@ -1,0 +1,33 @@
+{
+  "description": "Webhook signature test vectors: sha256=hex(HMAC-SHA256(secret, timestamp + \".\" + body)) over UTF-8 bytes. Generated with node:crypto as an independent reference; checked by the TypeScript signature module (test/unit/signature.spec.ts) and by the WordPress plugin (wordpress-plugin/tests/signature-vectors.php).",
+  "vectors": [
+    {
+      "name": "content change (ASCII)",
+      "secret": "dev-webhook-secret-change-me",
+      "timestamp": "1793565350",
+      "body": "{\"event\":\"post.saved\",\"type\":\"post\",\"id\":12,\"slug\":\"hello-world\",\"taxonomies\":[\"category\",\"post_tag\"]}",
+      "signature": "sha256=592d31a5e8c76f0f0298fdacd9a9a1bf545810b037e43a3a14dc1b0475d19a9c"
+    },
+    {
+      "name": "UTF-8 body",
+      "secret": "s3cr3t",
+      "timestamp": "1700000000",
+      "body": "{\"event\":\"term.saved\",\"type\":\"category\",\"id\":4,\"slug\":\"café-ñandú\"}",
+      "signature": "sha256=00032ab8b0a80aa436529e026910b9a04922900fd3acbbd35bda0d09c1f255ea"
+    },
+    {
+      "name": "empty body",
+      "secret": "s3cr3t",
+      "timestamp": "1700000000",
+      "body": "",
+      "signature": "sha256=f63f1341b06e485fe1fe78cbfd5f6d4cee0d492c21bbc3333af817254d0db38a"
+    },
+    {
+      "name": "secret with special characters",
+      "secret": "pä$$ wörd!@#%^&*()_+{}|:\"<>?",
+      "timestamp": "1700000001",
+      "body": "{\"tags\":[\"post:1\"]}",
+      "signature": "sha256=cae1bdc83df3e46ce78ba6780db2638a505a4224df036efc80a3dfdc123238ef"
+    }
+  ]
+}

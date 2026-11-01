@@ -1,3 +1,4 @@
+import { DEFAULT_TOLERANCE_SECONDS } from '../signature/index.js';
 import type {
   ResolvedWordPressOptions,
   WordPressModuleOptions,
@@ -5,7 +6,6 @@ import type {
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 const DEFAULT_CACHE_TTL_MS = 5 * 60_000;
-const DEFAULT_WEBHOOK_TOLERANCE_S = 300;
 
 /**
  * Validates options once, at bootstrap. A misconfigured base URL should crash the app on
@@ -55,7 +55,7 @@ export function resolveWordPressOptions(options: WordPressModuleOptions): Resolv
   }
   const webhook = options.webhook && {
     secret: options.webhook.secret,
-    toleranceSeconds: options.webhook.toleranceSeconds ?? DEFAULT_WEBHOOK_TOLERANCE_S,
+    toleranceSeconds: options.webhook.toleranceSeconds ?? DEFAULT_TOLERANCE_SECONDS,
   };
 
   return {

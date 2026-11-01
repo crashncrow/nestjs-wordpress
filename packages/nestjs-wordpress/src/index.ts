@@ -50,12 +50,17 @@ export {
   ContentChangedEvent,
   WORDPRESS_CONTENT_UPDATED,
 } from './wordpress/webhook/content-changed.event.js';
+export { HmacSignatureGuard } from './wordpress/webhook/hmac-signature.guard.js';
 export {
-  HmacSignatureGuard,
+  DEFAULT_TOLERANCE_SECONDS,
   SIGNATURE_HEADER,
   TIMESTAMP_HEADER,
   signWebhook,
-} from './wordpress/webhook/hmac-signature.guard.js';
+  verifyWebhook,
+  type HeadersLike,
+  type VerifyWebhookInput,
+  type WebhookVerification,
+} from './signature/index.js';
 export {
   WordPressHttpClient,
   type QueryValue,
