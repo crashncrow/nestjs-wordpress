@@ -15,4 +15,6 @@ export interface HomeView {
     imageUrl: string | null;
   }>;
   categories: Array<{ name: string; path: string; count: number }>;
+  /** Tags the aggregate depends on, computed by the BFF with the invalidation contract. */
+  cacheTags: string[];
 }

@@ -236,6 +236,9 @@ importers:
 
   apps/web:
     dependencies:
+      nestjs-wordpress:
+        specifier: workspace:*
+        version: link:../../packages/nestjs-wordpress
       next:
         specifier: ^16.4.3
         version: 16.4.3(@types/node@24.19.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -255,9 +258,6 @@ importers:
       '@types/react-dom':
         specifier: ^19.3.0
         version: 19.3.0(@types/react@19.3.0)
-      nestjs-wordpress:
-        specifier: workspace:*
-        version: link:../../packages/nestjs-wordpress
       typescript:
         specifier: ~6.0.3
         version: 6.0.3

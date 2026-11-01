@@ -1,5 +1,7 @@
 import { cacheLife, cacheTag } from 'next/cache';
-import { entryTags, tags } from './tags';
+// The library's invalidation contract, from a subpath with no NestJS code in it: the same
+// tags the BFF cache uses, so webhook tags can be passed straight to revalidateTag.
+import { ContentTags, tagsForResult } from 'nestjs-wordpress/invalidation';
 import type { Entry, HomeView, Menu, Page, Paginated, Post, Term } from './types';
 
 const API_URL = process.env.API_URL ?? 'http://localhost:3000';
@@ -24,16 +26,22 @@ async function api<T>(path: string): Promise<T | null> {
 export async function getHome(): Promise<HomeView | null> {
   'use cache';
   cacheLife('days');
-  // The aggregate depends on the home page, the primary menu, recent posts and categories.
-  cacheTag(tags.type('page'), tags.type('post'), tags.taxonomy('category'), tags.menus);
-  return api<HomeView>('/home');
+  const home = await api<HomeView>('/home');
+  // The BFF reports what the aggregate depends on; nothing to keep in sync here.
+  cacheTag(...(home ? home.cacheTags : [ContentTags.type('page')]));
+  return home;
 }
 
 export async function getPrimaryMenu(): Promise<Menu | null> {
   'use cache';
   cacheLife('days');
-  cacheTag(tags.menus);
-  return api<Menu>('/menus/primary');
+  const menu = await api<Menu>('/menus/primary');
+  cacheTag(
+    ...(menu
+      ? tagsForResult({ kind: 'menu', lookup: { location: 'primary' } }, menu)
+      : [ContentTags.menus]),
+  );
+  return menu;
 }
 
 export async function getPosts(page: number, category?: string): Promise<Paginated<Post> | null> {
@@ -43,8 +51,12 @@ export async function getPosts(page: number, category?: string): Promise<Paginat
   if (category) query.set('category', category);
 
   const result = await api<Paginated<Post>>(`/posts?${query}`);
-  cacheTag(tags.type('post'), ...(category ? [tags.taxonomy('category')] : []));
-  if (result) cacheTag(...result.items.flatMap(entryTags));
+  const read = {
+    kind: 'entries',
+    type: 'post',
+    query: { taxonomies: { category: category ? [category] : undefined } },
+  } as const;
+  cacheTag(...(result ? tagsForResult(read, result) : [ContentTags.type('post')]));
   return result;
 }
 
@@ -52,8 +64,12 @@ export async function getPost(slug: string): Promise<Post | null> {
   'use cache';
   cacheLife('days');
   const post = await api<Post>(`/posts/${encodeURIComponent(slug)}`);
-  // A missing post is cached too; publishing one sends `type:post`, which clears it.
-  cacheTag(...(post ? entryTags(post) : [tags.type('post')]));
+  // A missing post is cached too; publishing one invalidates `type:post`, which clears it.
+  cacheTag(
+    ...(post
+      ? tagsForResult({ kind: 'entry', type: 'post', lookup: { slug } }, post)
+      : [ContentTags.type('post')]),
+  );
   return post;
 }
 
@@ -61,8 +77,12 @@ export async function getPage(path: string): Promise<Page | null> {
   'use cache';
   cacheLife('days');
   const page = await api<Page>(`/pages/${path.split('/').map(encodeURIComponent).join('/')}`);
-  // A page path depends on its ancestors' slugs, so it is also tied to the whole type.
-  cacheTag(tags.type('page'), ...(page ? entryTags(page) : []));
+  // Path lookups are also tied to the whole type (a parent rename changes the path).
+  cacheTag(
+    ...(page
+      ? tagsForResult({ kind: 'entry', type: 'page', lookup: { path } }, page)
+      : [ContentTags.type('page')]),
+  );
   return page;
 }
 
@@ -70,7 +90,11 @@ export async function getCategory(slug: string): Promise<Term | null> {
   'use cache';
   cacheLife('days');
   const term = await api<Term>(`/categories/${encodeURIComponent(slug)}`);
-  cacheTag(tags.taxonomy('category'), ...(term ? [tags.term(term.id)] : []));
+  cacheTag(
+    ...(term
+      ? tagsForResult({ kind: 'term', taxonomy: 'category', lookup: { slug } }, term)
+      : [ContentTags.taxonomy('category')]),
+  );
   return term;
 }
 
