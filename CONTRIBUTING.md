@@ -31,7 +31,7 @@ CI runs all of these on every push and pull request.
 - **Comments:** explain _why_ for non-obvious decisions; the code shows _what_.
 - **Public API:** everything is exported from `packages/nestjs-wordpress/src/index.ts`. Raw WordPress types (`wp-types`) must not leak into it.
 - **Tests:** library tests use fixtures recorded from the seeded WordPress (`test/fixtures`), so unit tests exercise real WordPress JSON.
-- **Changes to the cache tag vocabulary** must be mirrored in the plugin (`includes/class-nwp-webhooks.php`) and `apps/web/lib/tags.ts`.
+- **Cache tags** live only in the invalidation contract (`src/invalidation/index.ts`), covered by the table in `test/unit/invalidation.spec.ts`. The plugin sends content changes, never tags; the web app imports `nestjs-wordpress/invalidation`. Domain terms are in [GLOSSARY.md](GLOSSARY.md).
 
 ## Releasing
 

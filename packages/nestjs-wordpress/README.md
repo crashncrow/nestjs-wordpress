@@ -252,14 +252,14 @@ Upstream 401/403 become 502 on purpose: the end client did nothing wrong and can
 
 ### Tokens and lower-level pieces
 
-| Export                              | Use                                                                                                         |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `CONTENT_SOURCE`                    | The `ContentSource` contract (cached when caching is on). Inject it to write source-agnostic code.          |
-| `CACHE_INVALIDATOR`                 | `{ invalidateTags(tags) }`, always injectable (a no-op when caching is off).                                |
-| `TAGGED_CACHE`                      | The full `TaggedCache` (`get` / `set` / `invalidateTags`).                                                  |
-| `ContentTags`                       | Tag builders: `ContentTags.entry('post', 12)`, `ContentTags.type('post')`, …                                |
-| `WordPressHttpClient`               | The `fetch` client with base URL, auth, timeout and error mapping, for endpoints the services do not cover. |
-| `HmacSignatureGuard`, `signWebhook` | Verify or produce signatures in the webhook format.                                                         |
+| Export                                          | Use                                                                                                           |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `CONTENT_SOURCE`                                | The `ContentSource` contract (cached when caching is on). Inject it to write source-agnostic code.            |
+| `CACHE_INVALIDATOR`                             | `{ invalidateTags(tags) }`, always injectable (a no-op when caching is off).                                  |
+| `TAGGED_CACHE`                                  | The full `TaggedCache` (`get` / `set` / `invalidateTags`).                                                    |
+| `tagsForResult`, `tagsForChange`, `ContentTags` | The invalidation contract (see [Caching](#caching)). Also at `nestjs-wordpress/invalidation`, without NestJS. |
+| `WordPressHttpClient`                           | The `fetch` client with base URL, auth, timeout and error mapping, for endpoints the services do not cover.   |
+| `HmacSignatureGuard`, `signWebhook`             | Verify or produce signatures in the webhook format.                                                           |
 
 ## Caching
 
@@ -268,15 +268,29 @@ cache: true                                   // in-memory, 5 minute TTL
 cache: { ttl: 600_000, redis: 'redis://redis:6379', namespace: 'my-app' }
 ```
 
-Results are cached as normalized DTOs and tagged from their content:
+Results are cached as normalized DTOs. One module, the **invalidation contract**, owns the tag vocabulary in both directions:
 
-| Tag                  | Attached to                                           |
-| -------------------- | ----------------------------------------------------- |
-| `<type>:<id>`        | an entry (`post:12`, `page:4`, `book:7`)              |
-| `type:<type>`        | every list of that type, and path lookups             |
-| `term:<id>`          | a term, and every entry or list that embeds it        |
-| `taxonomy:<name>`    | term lists, and entry lists filtered by that taxonomy |
-| `menu:<id>`, `menus` | menus                                                 |
+- **`tagsForResult(read, result)`** returns what a cached result depends on, read from the result itself: its own identity plus everything it embeds.
+- **`tagsForChange(change)`** returns what a content change invalidates: only the changed object's identity, plus the list tags it can appear in.
+
+Dependencies are never guessed from the change. A menu knows which pages and terms it links to, and a post knows its author and image, so renaming any of them refreshes exactly the results that show it.
+
+| Tag                                                 | On a result                                                                                             | Invalidated by                                   |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| `<type>:<id>` (`post:12`, `page:4`, `attachment:7`) | the entry, every list and menu that includes or links to it, and every entry using it as featured image | saving or deleting that post, page or attachment |
+| `user:<id>`                                         | every entry by that author                                                                              | saving or deleting the user                      |
+| `term:<id>`                                         | the term, and every entry, list or menu that embeds or links to it                                      | saving or deleting the term                      |
+| `type:<type>`                                       | every list of that type, and path lookups                                                               | any change to an entry of that type              |
+| `taxonomy:<name>`                                   | term lists, and entry lists **filtered** by that taxonomy                                               | term changes, and entry changes (term counts)    |
+| `menu:<id>`, `menus`                                | menus                                                                                                   | saving or deleting a menu or one of its items    |
+
+The same functions are available without NestJS for frontends that cache BFF responses:
+
+```ts
+import { tagsForResult } from 'nestjs-wordpress/invalidation';
+
+cacheTag(...tagsForResult({ kind: 'entry', type: 'post', lookup: { slug } }, post)); // Next.js
+```
 
 - **Errors and preview reads are never cached.** Concurrent misses for the same key share one request to WordPress.
 - **Store layout:**
@@ -321,7 +335,8 @@ define( 'NWP_PUBLIC_MENUS', true ); // optional: allow anonymous REST reads of m
 export class ContentListener {
   @OnEvent(WORDPRESS_CONTENT_UPDATED) // 'wordpress.content.updated'
   async onChange(event: ContentChangedEvent) {
-    // event: { event: 'post.saved', tags: ['post:12', 'type:post', …], id, type, slug, receivedAt }
+    // event: { event: 'post.saved', type: 'post', id: 12, slug, taxonomies,
+    //          tags: ['post:12', 'type:post', …] (from tagsForChange), receivedAt }
     await purgeCdn(event.tags); // or call Next.js revalidateTag, notify clients…
   }
 }
@@ -330,10 +345,12 @@ export class ContentListener {
 **What the plugin sends.** It reacts to:
 
 - posts that are published, updated, unpublished, trashed or deleted;
+- attachments that are edited or deleted;
+- users that are saved or deleted;
 - terms that are created, edited or deleted;
 - menus that are saved or deleted, and single menu items that are edited.
 
-Changes are deduplicated per request and sent on `shutdown`, one signed POST per change:
+Each webhook describes a **content change**: what happened and to which object. It carries no cache tags; the library derives them with `tagsForChange`. Changes are deduplicated per request and sent on `shutdown`, one signed POST per change:
 
 ```http
 POST /webhooks/wordpress
@@ -341,11 +358,12 @@ Content-Type: application/json
 X-NWP-Timestamp: 1793565350
 X-NWP-Signature: sha256=<hex HMAC-SHA256 of "<timestamp>.<raw body>" with the secret>
 
-{"event":"post.saved","tags":["post:12","type:post","taxonomy:category"],"id":12,"type":"post","slug":"hello-world"}
+{"event":"post.saved","type":"post","id":12,"slug":"hello-world","taxonomies":["category","post_tag"]}
 ```
 
 - **Signature checks:** the guard rejects bad signatures, tampered bodies and timestamps older than `toleranceSeconds`, comparing in constant time.
-- **Other senders:** anything can send a webhook by signing the same way, with `signWebhook(secret, body)`.
+- **Events:** `post.saved`/`post.deleted` (any post type, including `attachment`), `term.*`, `menu.*` and `user.*`. `taxonomies` lists the taxonomies a post's type uses, because publishing or removing it changes their term counts.
+- **Other senders:** anything can send a content change by signing it the same way, with `signWebhook(secret, body)`. To invalidate custom tags, inject `CACHE_INVALIDATOR` in your own code instead.
 - **Blocking vs. non-blocking:** web requests send non-blocking so publishing stays fast. WP-CLI and cron send blocking, because measured from WP-CLI, non-blocking calls never left the process before it exited. Override with the `nwp_webhook_blocking` filter, and adjust requests with `nwp_webhook_request_args`.
 
 ## Local development environment
