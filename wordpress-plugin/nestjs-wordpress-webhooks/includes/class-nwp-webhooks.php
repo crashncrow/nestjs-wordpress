@@ -17,15 +17,17 @@ defined( 'ABSPATH' ) || exit;
  * Queuing by "type:id" deduplicates them, and sending on `shutdown` guarantees terms and meta
  * have been saved by the time the application refetches.
  *
- * Tag vocabulary (must match `ContentTags` in the library):
- *   <post_type>:<id>, type:<post_type>, term:<id>, taxonomy:<name>, menu:<id>, menus
+ * The webhook describes *what changed* (a content change: event, type, ID, slug and, for
+ * posts, the taxonomies their type uses). It deliberately does not compute cache tags: the
+ * library's invalidation contract derives them, and reads dependencies from cached results
+ * (a menu knows the pages it links to, a post knows its author and image).
  */
 final class NWP_Webhooks {
 
 	/**
 	 * Pending changes keyed by "kind:id" so repeated hooks for the same object collapse.
 	 *
-	 * @var array<string, array{event: string, tags: string[], id: int, type: string, slug: string}>
+	 * @var array<string, array{event: string, type: string, id: int, slug: string, taxonomies?: string[]}>
 	 */
 	private static array $queue = array();
 
@@ -46,6 +48,14 @@ final class NWP_Webhooks {
 		add_action( 'transition_post_status', array( self::class, 'on_transition_post_status' ), 10, 3 );
 		// Permanent deletion of a post that skipped the trash.
 		add_action( 'before_delete_post', array( self::class, 'on_before_delete_post' ), 10, 2 );
+
+		// Attachments keep the `inherit` status, so transition_post_status never sees their edits.
+		add_action( 'attachment_updated', array( self::class, 'on_attachment_saved' ) );
+		add_action( 'delete_attachment', array( self::class, 'on_attachment_deleted' ) );
+
+		// Entries embed their author's name and avatar.
+		add_action( 'profile_update', array( self::class, 'on_user_saved' ) );
+		add_action( 'deleted_user', array( self::class, 'on_user_deleted' ) );
 
 		add_action( 'created_term', array( self::class, 'on_term_saved' ), 10, 3 );
 		add_action( 'edited_term', array( self::class, 'on_term_saved' ), 10, 3 );
@@ -98,6 +108,49 @@ final class NWP_Webhooks {
 		if ( 'publish' === $post->post_status && self::is_tracked_post( $post ) ) {
 			self::queue_post( 'post.deleted', $post );
 		}
+	}
+
+	/**
+	 * Queues an attachment edit (title, alt text, caption, file).
+	 *
+	 * @param int $post_id Attachment ID.
+	 */
+	public static function on_attachment_saved( int $post_id ): void {
+		$post = get_post( $post_id );
+		if ( $post instanceof WP_Post && self::is_tracked_post( $post ) ) {
+			self::queue_post( 'post.saved', $post );
+		}
+	}
+
+	/**
+	 * Queues an attachment deletion.
+	 *
+	 * @param int $post_id Attachment ID.
+	 */
+	public static function on_attachment_deleted( int $post_id ): void {
+		$post = get_post( $post_id );
+		if ( $post instanceof WP_Post && self::is_tracked_post( $post ) ) {
+			self::queue_post( 'post.deleted', $post );
+		}
+	}
+
+	/**
+	 * Queues a user profile update.
+	 *
+	 * @param int $user_id User ID.
+	 */
+	public static function on_user_saved( int $user_id ): void {
+		$user = get_userdata( $user_id );
+		self::queue_user( 'user.saved', $user_id, $user instanceof WP_User ? $user->user_nicename : '' );
+	}
+
+	/**
+	 * Queues a user deletion.
+	 *
+	 * @param int $user_id User ID.
+	 */
+	public static function on_user_deleted( int $user_id ): void {
+		self::queue_user( 'user.deleted', $user_id, '' );
 	}
 
 	/**
@@ -177,29 +230,15 @@ final class NWP_Webhooks {
 	 * @param WP_Post $post  Post object.
 	 */
 	private static function queue_post( string $event, WP_Post $post ): void {
-		$tags = array(
-			$post->post_type . ':' . $post->ID,
-			'type:' . $post->post_type,
-		);
-
-		// Term counts change when a post is published or removed.
-		foreach ( get_object_taxonomies( $post->post_type ) as $taxonomy ) {
-			if ( self::is_tracked_taxonomy( $taxonomy ) ) {
-				$tags[] = 'taxonomy:' . $taxonomy;
-			}
-		}
-
-		// Menu items linking to this post show its title.
-		if ( array() !== wp_get_associated_nav_menu_items( $post->ID, 'post_type', $post->post_type ) ) {
-			$tags[] = 'menus';
-		}
+		// Publishing or removing an entry changes the term counts of these taxonomies.
+		$taxonomies = array_values( array_filter( get_object_taxonomies( $post->post_type ), array( self::class, 'is_tracked_taxonomy' ) ) );
 
 		self::$queue[ 'post:' . $post->ID ] = array(
-			'event' => $event,
-			'tags'  => $tags,
-			'id'    => $post->ID,
-			'type'  => $post->post_type,
-			'slug'  => $post->post_name,
+			'event'      => $event,
+			'type'       => $post->post_type,
+			'id'         => $post->ID,
+			'slug'       => $post->post_name,
+			'taxonomies' => $taxonomies,
 		);
 	}
 
@@ -214,9 +253,8 @@ final class NWP_Webhooks {
 	private static function queue_term( string $event, int $term_id, string $taxonomy, string $slug ): void {
 		self::$queue[ 'term:' . $term_id ] = array(
 			'event' => $event,
-			'tags'  => array( 'term:' . $term_id, 'taxonomy:' . $taxonomy ),
-			'id'    => $term_id,
 			'type'  => $taxonomy,
+			'id'    => $term_id,
 			'slug'  => $slug,
 		);
 	}
@@ -232,10 +270,25 @@ final class NWP_Webhooks {
 
 		self::$queue[ 'menu:' . $menu_id ] = array(
 			'event' => $event,
-			'tags'  => array( 'menu:' . $menu_id, 'menus' ),
-			'id'    => $menu_id,
 			'type'  => 'nav_menu',
+			'id'    => $menu_id,
 			'slug'  => $menu instanceof WP_Term ? $menu->slug : '',
+		);
+	}
+
+	/**
+	 * Adds a user change to the queue.
+	 *
+	 * @param string $event   Event name.
+	 * @param int    $user_id User ID.
+	 * @param string $slug    User slug (nicename).
+	 */
+	private static function queue_user( string $event, int $user_id, string $slug ): void {
+		self::$queue[ 'user:' . $user_id ] = array(
+			'event' => $event,
+			'type'  => 'user',
+			'id'    => $user_id,
+			'slug'  => $slug,
 		);
 	}
 
@@ -258,7 +311,7 @@ final class NWP_Webhooks {
 	 * `X-NWP-Signature: sha256=<hex>` together with `X-NWP-Timestamp`. Signing the timestamp
 	 * lets the receiver reject replayed requests.
 	 *
-	 * @param array{event: string, tags: string[], id: int, type: string, slug: string} $change Change to send.
+	 * @param array{event: string, type: string, id: int, slug: string, taxonomies?: string[]} $change Change to send.
 	 */
 	private static function send( array $change ): void {
 		$body = wp_json_encode( $change );
