@@ -134,6 +134,64 @@ describe('Webhook flow (e2e, real WordPress + plugin)', { timeout: 90_000 }, () 
     }
   });
 
+  // The next three cover dependencies that only the cached *result* knows about: the plugin
+  // reports the changed object, and the invalidation contract finds who embeds it.
+
+  it('refreshes menus when a term they link to is renamed', async () => {
+    const { body: menu } = await http().get('/menus/primary').expect(200);
+    const item = menu.items.find((i: { kind: string }) => i.kind === 'term');
+    expect(item.title).toBe('News');
+
+    try {
+      const event = nextEvent((e) => e.event === 'term.saved' && e.id === item.objectId);
+      await wp(['term', 'update', 'category', String(item.objectId), '--name=News renamed']);
+      await event;
+      const { body: after } = await http().get('/menus/primary').expect(200);
+      expect(after.items.map((i: { title: string }) => i.title)).toContain('News renamed');
+    } finally {
+      await wp(['term', 'update', 'category', String(item.objectId), '--name=News']);
+    }
+  });
+
+  it('refreshes posts when their author is renamed', async () => {
+    const { body: post } = await http().get('/posts/demo-post-3').expect(200);
+    const original = post.author.name;
+
+    try {
+      const event = nextEvent((e) => e.event === 'user.saved' && e.id === post.author.id);
+      await wp(['user', 'update', String(post.author.id), '--display_name=Renamed Author']);
+      expect((await event).tags).toEqual([`user:${post.author.id}`]);
+      expect((await http().get('/posts/demo-post-3').expect(200)).body.author.name).toBe(
+        'Renamed Author',
+      );
+    } finally {
+      await wp(['user', 'update', String(post.author.id), `--display_name=${original}`]);
+    }
+  });
+
+  it('refreshes posts when their featured image changes', async () => {
+    const { body: post } = await http().get('/posts/demo-post-3').expect(200);
+    const image = post.featuredImage;
+    const setAlt = (alt: string) =>
+      wp([
+        'post',
+        'update',
+        String(image.id),
+        `--meta_input={"_wp_attachment_image_alt":"${alt}"}`,
+      ]);
+
+    try {
+      const event = nextEvent((e) => e.type === 'attachment' && e.id === image.id);
+      await setAlt('Renamed alt');
+      expect((await event).tags).toContain(`attachment:${image.id}`);
+      expect((await http().get('/posts/demo-post-3').expect(200)).body.featuredImage.alt).toBe(
+        'Renamed alt',
+      );
+    } finally {
+      await setAlt(image.alt);
+    }
+  });
+
   it('rejects unsigned requests to the webhook endpoint', async () => {
     await http()
       .post('/webhooks/wordpress')

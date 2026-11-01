@@ -136,6 +136,12 @@ describe('Content endpoints (e2e, real WordPress)', () => {
         imageUrl: expect.stringContaining('/wp-content/uploads/'),
       });
       expect(body.categories[0]).toEqual({ name: 'News', path: '/category/news/', count: 8 });
+      // What the aggregate depends on, from the invalidation contract (pages linked in the menu,
+      // the posts' authors and images, the category list).
+      expect(body.cacheTags).toEqual(
+        expect.arrayContaining(['type:page', 'menus', 'type:post', 'taxonomy:category', 'user:1']),
+      );
+      expect(body.cacheTags.some((tag: string) => tag.startsWith('attachment:'))).toBe(true);
     });
   });
 

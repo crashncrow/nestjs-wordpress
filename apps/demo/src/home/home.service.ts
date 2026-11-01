@@ -5,6 +5,7 @@ import {
   PagesService,
   type Post,
   PostsService,
+  tagsForResult,
   TermsService,
 } from 'nestjs-wordpress';
 
@@ -22,6 +23,11 @@ export interface HomeView {
   navigation: MenuItem[];
   latestPosts: PostCard[];
   categories: Array<{ name: string; path: string; count: number }>;
+  /**
+   * Cache tags this response depends on, from the library's invalidation contract. Lets a
+   * frontend cache the aggregate and invalidate it with the tags the webhook reports.
+   */
+  cacheTags: string[];
 }
 
 /**
@@ -39,18 +45,28 @@ export class HomeService {
 
   async getHome(): Promise<HomeView> {
     // Independent reads run in parallel.
+    const termQuery = { hideEmpty: true, orderBy: 'count', order: 'desc' } as const;
     const [page, menu, latest, categories] = await Promise.all([
       this.pages.getByPath('home'),
       this.menus.getByLocation('primary'),
       this.posts.list({ perPage: 3 }),
-      this.terms.list('category', { hideEmpty: true, orderBy: 'count', order: 'desc' }),
+      this.terms.list('category', termQuery),
     ]);
+
+    // Each part described as the read that produced it, so the tags match the library's cache.
+    const cacheTags = [
+      ...tagsForResult({ kind: 'entry', type: 'page', lookup: { path: 'home' } }, page),
+      ...tagsForResult({ kind: 'menu', lookup: { location: 'primary' } }, menu),
+      ...tagsForResult({ kind: 'entries', type: 'post', query: { perPage: 3 } }, latest),
+      ...tagsForResult({ kind: 'terms', taxonomy: 'category', query: termQuery }, categories),
+    ];
 
     return {
       hero: { title: page.title, html: page.content },
       navigation: menu.items,
       latestPosts: latest.items.map(toCard),
       categories: categories.items.map(({ name, path, count }) => ({ name, path, count })),
+      cacheTags: [...new Set(cacheTags)],
     };
   }
 }
