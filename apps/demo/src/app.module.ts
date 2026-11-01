@@ -3,7 +3,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ContentExceptionFilter, WordPressModule } from 'nestjs-wordpress';
+import { CategoriesController } from './categories/categories.controller.js';
 import { ContentChangesListener } from './content-events/content-changes.listener.js';
+import { NextRevalidationListener } from './content-events/next-revalidation.listener.js';
 import { HealthController } from './health.controller.js';
 import { HomeController } from './home/home.controller.js';
 import { HomeService } from './home/home.service.js';
@@ -46,6 +48,7 @@ import { PostsController } from './posts/posts.controller.js';
     PagesController,
     MenusController,
     HomeController,
+    CategoriesController,
   ],
   providers: [
     // Registered through APP_FILTER (not app.useGlobalFilters in main.ts) so it is part of the
@@ -53,6 +56,7 @@ import { PostsController } from './posts/posts.controller.js';
     { provide: APP_FILTER, useClass: ContentExceptionFilter },
     HomeService,
     ContentChangesListener,
+    NextRevalidationListener,
   ],
 })
 export class AppModule {}

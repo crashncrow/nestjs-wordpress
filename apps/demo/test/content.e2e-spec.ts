@@ -110,6 +110,18 @@ describe('Content endpoints (e2e, real WordPress)', () => {
     });
   });
 
+  describe('GET /categories/:slug', () => {
+    it('returns a category term, or 404', async () => {
+      const { body } = await http().get('/categories/nestjs').expect(200);
+      expect(body).toMatchObject({
+        name: 'NestJS',
+        parentId: expect.any(Number),
+        path: '/category/tutorials/nestjs/',
+      });
+      await http().get('/categories/does-not-exist').expect(404);
+    });
+  });
+
   describe('GET /home (BFF aggregate)', () => {
     it('combines page, menu, posts and categories in one response', async () => {
       const { body } = await http().get('/home').expect(200);
