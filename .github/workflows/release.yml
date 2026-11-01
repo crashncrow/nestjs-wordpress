@@ -1,0 +1,87 @@
+name: Release
+
+# Stages packages/nestjs-wordpress on npm, with provenance, when a GitHub release is published,
+# and attaches the WordPress plugin as a zip to that release.
+#
+# The release tag must be `v<version>` (the version in packages/nestjs-wordpress/package.json).
+# Versions with a pre-release part (0.2.0-beta.1) go to the `beta` dist-tag, others to `latest`.
+#
+# Staged publishing: this workflow never makes a version public. `npm stage publish` uploads it,
+# and a maintainer approves it with 2FA on npmjs.com (Staged Packages) or `npm stage approve`.
+#
+# Auth: npm trusted publishing (OIDC, no stored token), configured on npmjs.com for this workflow
+# file and the `npm` environment. That needs an existing package, so the first release uses a
+# one-off stage-only NPM_TOKEN secret on the `npm` environment: delete it (and revoke the token)
+# once trusted publishing is set up.
+#
+# Actions are pinned by commit SHA (version in a comment): this workflow can publish.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  stage:
+    name: Stage nestjs-wordpress on npm
+    runs-on: ubuntu-latest
+    environment: npm # requires a maintainer's approval before it runs
+    permissions:
+      contents: read
+      id-token: write # OIDC: trusted publishing and provenance
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Check the release tag matches the package version
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          VERSION="$(node -p "require('./packages/nestjs-wordpress/package.json').version")"
+          [ "$TAG" = "v$VERSION" ] || { echo "::error::Release tag $TAG doesn't match the package version (v$VERSION)"; exit 1; }
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter nestjs-wordpress build
+      - run: pnpm --filter nestjs-wordpress test
+      - run: pnpm --filter nestjs-wordpress check:package
+
+      - name: Stage on npm
+        working-directory: packages/nestjs-wordpress
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # empty once trusted publishing is configured
+        # Staged publishing needs npm 11.15.0+, which the runner's npm may not be. `npx` runs the pinned
+        # npm directly. Pinned on purpose.
+        run: |
+          NPM="npx -y npm@11.21.0"
+          $NPM --version
+          VERSION="$(node -p "require('./package.json').version")"
+          case "$VERSION" in *-*) DIST_TAG=beta ;; *) DIST_TAG=latest ;; esac
+          if [ -n "$NODE_AUTH_TOKEN" ]; then
+            echo "//registry.npmjs.org/:_authToken=\${NODE_AUTH_TOKEN}" > "$HOME/.npmrc"
+          fi
+          $NPM stage publish --provenance --access public --tag "$DIST_TAG"
+          echo "::notice::Staged nestjs-wordpress@$VERSION ($DIST_TAG). Approve it with 2FA on npmjs.com → Staged Packages."
+
+  plugin:
+    name: Attach the WordPress plugin zip
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # upload a release asset
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Upload it from WP admin → Plugins → Add New → Upload Plugin.
+      - name: Zip and upload
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          cd wordpress-plugin
+          zip -r ../nestjs-wordpress-webhooks.zip nestjs-wordpress-webhooks
+          cd ..
+          gh release upload "$TAG" nestjs-wordpress-webhooks.zip --clobber
