@@ -236,6 +236,8 @@ interface MenuItem {
 
 Every DTO is plain JSON (no `Date` objects or class instances), so it survives a round trip through Redis or an HTTP response unchanged.
 
+`title`, `excerpt` and term/menu names are **plain text** with entities decoded: render them as text (React does), and escape them before inserting into HTML. `content` is the HTML WordPress rendered.
+
 ### Errors
 
 Every error extends `ContentSourceException`, a plain `Error`, so the library does not dictate HTTP semantics. `ContentExceptionFilter` maps them to responses without leaking upstream details:

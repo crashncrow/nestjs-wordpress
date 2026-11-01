@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
@@ -14,21 +14,24 @@ import {
   ContentUnauthorizedException,
 } from '../../src/index.js';
 
-const EXCEPTIONS: Record<string, new (message: string) => ContentSourceException> = {
-  notFound: ContentNotFoundException,
-  badRequest: ContentBadRequestException,
-  unauthorized: ContentUnauthorizedException,
-  forbidden: ContentForbiddenException,
-  timeout: ContentSourceTimeoutException,
-  unavailable: ContentSourceUnavailableException,
-  base: ContentSourceException,
-};
+// A Map, not an object: a route param must not reach Object.prototype (`constructor`, …).
+const EXCEPTIONS = new Map<string, new (message: string) => ContentSourceException>([
+  ['notFound', ContentNotFoundException],
+  ['badRequest', ContentBadRequestException],
+  ['unauthorized', ContentUnauthorizedException],
+  ['forbidden', ContentForbiddenException],
+  ['timeout', ContentSourceTimeoutException],
+  ['unavailable', ContentSourceUnavailableException],
+  ['base', ContentSourceException],
+]);
 
 @Controller()
 class ThrowingController {
   @Get(':kind')
   throw(@Param('kind') kind: string): never {
-    throw new EXCEPTIONS[kind]!('upstream detail that must not leak');
+    const Exception = EXCEPTIONS.get(kind);
+    if (!Exception) throw new NotFoundException();
+    throw new Exception('upstream detail that must not leak');
   }
 }
 

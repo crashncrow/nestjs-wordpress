@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { cleanExcerpt, decodeEntities, toPlainText } from '../../src/wordpress/normalizers/html.js';
+import {
+  cleanExcerpt,
+  decodeEntities,
+  stripTags,
+  toPlainText,
+} from '../../src/wordpress/normalizers/html.js';
 
 describe('html helpers', () => {
   it('decodes numeric, hex and named entities', () => {
@@ -10,6 +15,16 @@ describe('html helpers', () => {
 
   it('turns rendered titles into plain text', () => {
     expect(toPlainText('Hello <em>world</em> &#8211; again')).toBe('Hello world – again');
+  });
+
+  it('never leaves a tag assembled from the leftovers of removed ones', () => {
+    for (const input of [
+      '<<b>script>alert(1)<</b>/script>',
+      '<scr<!-- x -->ipt>',
+      '<!<!-- a -->-- b -->c',
+    ]) {
+      expect(stripTags(input)).not.toMatch(/<[a-z!/]/i);
+    }
   });
 
   it('removes WordPress "read more" decorations from excerpts', () => {

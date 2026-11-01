@@ -42,10 +42,24 @@ export function decodeEntities(text: string): string {
 }
 
 export function stripTags(html: string): string {
-  return html.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]*>/g, ' ');
+  // Repeat until nothing changes, so removing one tag or comment can never leave another one
+  // assembled from the leftovers (e.g. `<<b>i>` or nested comment markers).
+  let text = html;
+  let previous: string;
+  do {
+    previous = text;
+    text = text.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]*>/g, ' ');
+  } while (text !== previous);
+  return text;
 }
 
-/** Rendered title → plain text. */
+/**
+ * Rendered title → plain text.
+ *
+ * The result is *text*, not HTML: entities are decoded, so a title stored as `&lt;b&gt;` comes
+ * back as `<b>`. Render it as text (React does by default); escape it before inserting it into
+ * HTML.
+ */
 export function toPlainText(html: string): string {
   return decodeEntities(stripTags(html)).replace(/\s+/g, ' ').trim();
 }
