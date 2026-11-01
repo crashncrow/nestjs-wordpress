@@ -188,13 +188,14 @@ interface Author {
 
 All errors extend `ContentSourceException`, a plain `Error`. The library doesn't decide HTTP semantics.
 
-| Library exception                   | WP condition                    | HTTP status set by the optional `ContentExceptionFilter` |
-| ----------------------------------- | ------------------------------- | -------------------------------------------------------- |
-| `ContentNotFoundException`          | 404, or empty result for a slug | 404                                                      |
-| `ContentUnauthorizedException`      | 401                             | 401                                                      |
-| `ContentForbiddenException`         | 403                             | 403                                                      |
-| `ContentSourceTimeoutException`     | `AbortSignal.timeout`           | 504                                                      |
-| `ContentSourceUnavailableException` | network / 5xx                   | 502                                                      |
+| Library exception                   | WP condition                                                              | HTTP status set by the optional `ContentExceptionFilter`    |
+| ----------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| `ContentNotFoundException`          | 404, empty result for a slug, page past the end, anonymous 401 on a draft | 404                                                         |
+| `ContentBadRequestException`        | other 400 (invalid params)                                                | 400                                                         |
+| `ContentUnauthorizedException`      | 401                                                                       | 502 (the server's CMS credentials failed, not the client's) |
+| `ContentForbiddenException`         | 403                                                                       | 502                                                         |
+| `ContentSourceTimeoutException`     | `AbortSignal.timeout`                                                     | 504                                                         |
+| `ContentSourceUnavailableException` | network / 5xx                                                             | 502                                                         |
 
 The filter is not applied globally by default: the app opts in.
 
