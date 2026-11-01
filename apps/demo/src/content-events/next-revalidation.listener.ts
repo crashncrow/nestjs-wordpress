@@ -29,7 +29,7 @@ export class NextRevalidationListener {
     try {
       const response = await fetch(this.url, {
         method: 'POST',
-        headers: { 'content-type': 'application/json', ...signWebhook(this.secret, body) },
+        headers: { 'content-type': 'application/json', ...(await signWebhook(this.secret, body)) },
         body,
         signal: AbortSignal.timeout(5_000),
       });

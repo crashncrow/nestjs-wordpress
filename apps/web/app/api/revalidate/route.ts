@@ -1,5 +1,5 @@
 import { revalidateTag } from 'next/cache';
-import { verifySignature } from '@/lib/signature';
+import { verifyWebhook } from 'nestjs-wordpress/signature';
 
 /**
  * Called by the NestJS demo after it processed a WordPress webhook.
@@ -11,13 +11,14 @@ export async function POST(request: Request): Promise<Response> {
 
   // Read the raw text: the signature covers the exact bytes, not a re-serialized object.
   const rawBody = await request.text();
-  const valid = verifySignature(
-    secret,
-    rawBody,
-    request.headers.get('x-nwp-timestamp'),
-    request.headers.get('x-nwp-signature'),
-  );
-  if (!valid) return Response.json({ error: 'Invalid signature' }, { status: 401 });
+  // Same signature module the NestJS guard uses (Web Crypto: also works on the Edge runtime).
+  const verification = await verifyWebhook({ secret, body: rawBody, headers: request.headers });
+  if (!verification.ok) {
+    return Response.json(
+      { error: 'Invalid signature', reason: verification.reason },
+      { status: 401 },
+    );
+  }
 
   let body: unknown;
   try {
