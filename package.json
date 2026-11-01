@@ -12,6 +12,7 @@
     "wp:seed": "bash docker/seed.sh",
     "wp:down": "bash docker/compose.sh --profile seed down",
     "dev": "pnpm --filter nestjs-wordpress build && pnpm --parallel --filter nestjs-wordpress --filter demo run dev",
+    "dev:web": "pnpm --filter web dev",
     "build": "pnpm -r run build",
     "typecheck": "pnpm -r run typecheck",
     "lint": "oxlint && prettier --check .",

@@ -15,7 +15,7 @@
     "import/no-unassigned-import": [
       "warn",
       {
-        "allow": ["reflect-metadata"]
+        "allow": ["reflect-metadata", "**/*.css"]
       }
     ],
     "vitest/expect-expect": [
@@ -31,5 +31,5 @@
       }
     ]
   },
-  "ignorePatterns": ["dist", "coverage", "wordpress-plugin"]
+  "ignorePatterns": [".next", "coverage", "dist", "wordpress-plugin"]
 }
