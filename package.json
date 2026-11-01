@@ -19,9 +19,11 @@
     "lint:php": "bash wordpress-plugin/lint.sh",
     "format": "prettier --write .",
     "test": "pnpm -r run test",
-    "test:e2e": "pnpm --filter nestjs-wordpress build && pnpm --filter demo run test:e2e"
+    "test:e2e": "pnpm --filter nestjs-wordpress build && pnpm --filter demo run test:e2e",
+    "changeset": "changeset"
   },
   "devDependencies": {
+    "@changesets/cli": "^3.0.3",
     "@types/node": "^24.19.2",
     "oxlint": "^1.90.0",
     "prettier": "^3.9.10",
