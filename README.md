@@ -1,11 +1,15 @@
-# nestjs-wordpress
+![NestJS + WordPress](docs/assets/nestjs-wordpress-banner.webp)
 
-WordPress as a headless content source for NestJS, plus everything needed to develop and demo it.
+**WordPress as a headless CMS for NestJS.**
+
+Normalized content, tag-based caching and signed webhooks. Let editors work in WordPress while your NestJS API serves typed content to every client.
 
 [![CI](https://github.com/crashncrow/nestjs-wordpress/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/crashncrow/nestjs-wordpress/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**→ Library documentation: [packages/nestjs-wordpress/README.md](packages/nestjs-wordpress/README.md)**
+[Guide](packages/nestjs-wordpress/README.md) · [NestJS demo](apps/demo) · [Next.js demo](apps/web) · [WordPress plugin](wordpress-plugin) · [Docs](docs)
+
+> **Pre-release:** nestjs-wordpress is not on npm yet. APIs may still change before `1.0`.
 
 ```
 WordPress ──(REST)──▶ NestJS + nestjs-wordpress ──(JSON)──▶ web / mobile / Next.js
