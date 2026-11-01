@@ -9,7 +9,7 @@ import {
   ContentUnauthorizedException,
 } from '../../core/errors/content-source.exception.js';
 import type { ResolvedWordPressOptions } from '../wordpress-options.interface.js';
-import { WORDPRESS_RESOLVED_OPTIONS } from '../wordpress.module-definition.js';
+import { WORDPRESS_RESOLVED_OPTIONS } from '../wordpress.tokens.js';
 
 export type QueryValue = string | number | boolean | ReadonlyArray<string | number> | undefined;
 

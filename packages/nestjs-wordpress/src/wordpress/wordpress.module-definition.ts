@@ -1,5 +1,16 @@
 import { ConfigurableModuleBuilder } from '@nestjs/common';
+import { createWebhookController, DEFAULT_WEBHOOK_PATH } from './webhook/webhook.controller.js';
 import type { WordPressModuleOptions } from './wordpress-options.interface.js';
+
+export interface WordPressModuleExtras {
+  /** Register the module globally, so feature modules do not need to import it. */
+  isGlobal?: boolean;
+  /**
+   * Mount the signed webhook endpoint (`POST /webhooks/wordpress` by default).
+   * Requires the `webhook.secret` option and an app created with `{ rawBody: true }`.
+   */
+  webhookController?: boolean | { path?: string };
+}
 
 /**
  * `ConfigurableModuleBuilder` generates `forRoot()` / `forRootAsync()` (with `useFactory`,
@@ -7,8 +18,9 @@ import type { WordPressModuleOptions } from './wordpress-options.interface.js';
  * not hand-roll that boilerplate.
  *
  * "Extras" are options that must be known when the module is *defined* rather than when
- * providers are *instantiated*: `isGlobal` changes the module metadata itself, so it cannot
- * come from an async factory.
+ * providers are *instantiated*: `isGlobal` and the webhook controller change the module
+ * metadata itself (its `global` flag and `controllers` list), so they cannot come from an
+ * async factory. That is why they sit next to `useFactory`, not inside its result.
  */
 export const {
   ConfigurableModuleClass,
@@ -17,11 +29,17 @@ export const {
   ASYNC_OPTIONS_TYPE,
 } = new ConfigurableModuleBuilder<WordPressModuleOptions>({ moduleName: 'WordPress' })
   .setClassMethodName('forRoot')
-  .setExtras({ isGlobal: false }, (definition, extras) => ({
-    ...definition,
-    global: extras.isGlobal,
-  }))
+  .setExtras<WordPressModuleExtras>(
+    { isGlobal: false, webhookController: false },
+    (definition, extras) => {
+      const webhook = extras.webhookController;
+      const path =
+        typeof webhook === 'object' ? (webhook.path ?? DEFAULT_WEBHOOK_PATH) : DEFAULT_WEBHOOK_PATH;
+      return {
+        ...definition,
+        global: extras.isGlobal,
+        controllers: webhook ? [createWebhookController(path)] : [],
+      };
+    },
+  )
   .build();
-
-/** Internal token for {@link ResolvedWordPressOptions}. */
-export const WORDPRESS_RESOLVED_OPTIONS = Symbol('WORDPRESS_RESOLVED_OPTIONS');

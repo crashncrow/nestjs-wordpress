@@ -4,6 +4,8 @@ import type {
 } from './wordpress-options.interface.js';
 
 const DEFAULT_TIMEOUT_MS = 10_000;
+const DEFAULT_CACHE_TTL_MS = 5 * 60_000;
+const DEFAULT_WEBHOOK_TOLERANCE_S = 300;
 
 /**
  * Validates options once, at bootstrap. A misconfigured base URL should crash the app on
@@ -36,6 +38,26 @@ export function resolveWordPressOptions(options: WordPressModuleOptions): Resolv
     throw new Error('WordPressModule: "auth" needs both "username" and "applicationPassword"');
   }
 
+  const cacheOptions = options.cache === true ? {} : options.cache;
+  const cache = cacheOptions
+    ? {
+        ttl: cacheOptions.ttl ?? DEFAULT_CACHE_TTL_MS,
+        redis: cacheOptions.redis,
+        namespace: cacheOptions.namespace ?? 'nestjs-wordpress',
+      }
+    : false;
+  if (cache && (!Number.isFinite(cache.ttl) || cache.ttl <= 0)) {
+    throw new Error(`WordPressModule: "cache.ttl" must be a positive number, got ${cache.ttl}`);
+  }
+
+  if (options.webhook && !options.webhook.secret) {
+    throw new Error('WordPressModule: "webhook.secret" must be a non-empty string');
+  }
+  const webhook = options.webhook && {
+    secret: options.webhook.secret,
+    toleranceSeconds: options.webhook.toleranceSeconds ?? DEFAULT_WEBHOOK_TOLERANCE_S,
+  };
+
   return {
     baseUrl,
     apiUrl,
@@ -44,5 +66,7 @@ export function resolveWordPressOptions(options: WordPressModuleOptions): Resolv
     rewriteUrls: options.rewriteUrls ?? true,
     // Bind so `this` is correct when the global fetch is stored and called later.
     fetch: options.fetch ?? globalThis.fetch.bind(globalThis),
+    cache,
+    webhook,
   };
 }

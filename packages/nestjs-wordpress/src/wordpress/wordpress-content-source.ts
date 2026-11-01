@@ -32,7 +32,7 @@ import type {
 import { normalizeTerm } from './normalizers/term.normalizer.js';
 import { UrlRewriter } from './normalizers/url-rewriter.js';
 import type { ResolvedWordPressOptions } from './wordpress-options.interface.js';
-import { WORDPRESS_RESOLVED_OPTIONS } from './wordpress.module-definition.js';
+import { WORDPRESS_RESOLVED_OPTIONS } from './wordpress.tokens.js';
 
 /** Only the relations the normalizers use: smaller responses than a bare `_embed`. */
 const EMBED = 'author,wp:featuredmedia,wp:term';

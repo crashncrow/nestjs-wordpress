@@ -4,6 +4,25 @@ export interface WordPressAuthOptions {
   applicationPassword: string;
 }
 
+export interface WordPressCacheOptions {
+  /** Time-to-live in milliseconds. Defaults to 300 000 (5 minutes). */
+  ttl?: number;
+  /**
+   * Redis URL (`redis://host:6379`). Requires the optional `@keyv/redis` package. When
+   * omitted, an in-process memory cache is used (fine for a single instance).
+   */
+  redis?: string;
+  /** Key prefix, to share one Redis between apps. Defaults to `nestjs-wordpress`. */
+  namespace?: string;
+}
+
+export interface WordPressWebhookOptions {
+  /** Shared secret used by the WordPress plugin to sign requests (HMAC-SHA256). */
+  secret: string;
+  /** Maximum clock skew / request age accepted, in seconds. Defaults to 300. */
+  toleranceSeconds?: number;
+}
+
 export interface WordPressModuleOptions {
   /** Site URL, e.g. `https://cms.example.com` (a subdirectory install like `https://x.com/blog` works too). */
   baseUrl: string;
@@ -26,6 +45,13 @@ export interface WordPressModuleOptions {
    * Custom `fetch` implementation (instrumentation, proxies, tests). Defaults to the global one.
    */
   fetch?: typeof fetch;
+  /**
+   * Tag-based caching of normalized content. Off by default: without the webhook plugin,
+   * cached content is only refreshed when the TTL expires. `true` uses all defaults.
+   */
+  cache?: boolean | WordPressCacheOptions;
+  /** Required when the webhook controller is enabled (see the `webhookController` extra). */
+  webhook?: WordPressWebhookOptions;
 }
 
 /** Options after defaults are applied and validated; what providers actually inject. */
@@ -36,4 +62,6 @@ export interface ResolvedWordPressOptions {
   timeout: number;
   rewriteUrls: boolean;
   fetch: typeof fetch;
+  cache: { ttl: number; redis: string | undefined; namespace: string } | false;
+  webhook: { secret: string; toleranceSeconds: number } | undefined;
 }

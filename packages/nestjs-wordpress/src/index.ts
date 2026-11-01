@@ -18,7 +18,9 @@ export type {
   TermListQuery,
   TermLookup,
 } from './core/content-source.interface.js';
-export { CONTENT_SOURCE } from './core/tokens.js';
+export { CACHE_INVALIDATOR, CONTENT_SOURCE, TAGGED_CACHE } from './core/tokens.js';
+export type { CacheInvalidator, TaggedCache } from './core/cache/tagged-cache.interface.js';
+export { ContentTags } from './core/cache/content-tags.js';
 export { PostsService, type PostListQuery } from './core/services/posts.service.js';
 export { PagesService, type PageListQuery } from './core/services/pages.service.js';
 export { EntriesService } from './core/services/entries.service.js';
@@ -31,8 +33,23 @@ export { ContentExceptionFilter } from './core/errors/content-exception.filter.j
 export { WordPressModule } from './wordpress/wordpress.module.js';
 export type {
   WordPressAuthOptions,
+  WordPressCacheOptions,
   WordPressModuleOptions,
+  WordPressWebhookOptions,
 } from './wordpress/wordpress-options.interface.js';
+export type { WordPressModuleExtras } from './wordpress/wordpress.module-definition.js';
+export {
+  ContentChangedEvent,
+  WORDPRESS_CONTENT_UPDATED,
+  type ContentChangeKind,
+  type WebhookPayload,
+} from './wordpress/webhook/content-changed.event.js';
+export {
+  HmacSignatureGuard,
+  SIGNATURE_HEADER,
+  TIMESTAMP_HEADER,
+  signWebhook,
+} from './wordpress/webhook/hmac-signature.guard.js';
 export {
   WordPressHttpClient,
   type QueryValue,
