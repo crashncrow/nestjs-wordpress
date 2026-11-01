@@ -61,6 +61,8 @@ jobs:
       - run: composer install --no-interaction --no-progress
       - run: vendor/bin/phpcs
       - run: php -l nestjs-wordpress-webhooks/nestjs-wordpress-webhooks.php && php -l nestjs-wordpress-webhooks/includes/class-nwp-webhooks.php
+      - name: Signature test vectors (shared with the TypeScript signature module)
+        run: php tests/signature-vectors.php ../packages/nestjs-wordpress/test/fixtures/signature-vectors.json
 
   e2e:
     name: E2E (Docker WordPress + webhook loop)

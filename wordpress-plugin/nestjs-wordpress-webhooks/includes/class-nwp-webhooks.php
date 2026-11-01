@@ -320,14 +320,13 @@ final class NWP_Webhooks {
 		}
 
 		$timestamp = (string) time();
-		$signature = hash_hmac( 'sha256', $timestamp . '.' . $body, NWP_WEBHOOK_SECRET );
 
 		$args = array(
 			'body'     => $body,
 			'headers'  => array(
 				'Content-Type'    => 'application/json',
 				'X-NWP-Timestamp' => $timestamp,
-				'X-NWP-Signature' => 'sha256=' . $signature,
+				'X-NWP-Signature' => self::sign( NWP_WEBHOOK_SECRET, $timestamp, $body ),
 			),
 			'timeout'  => 5,
 			// Non-blocking: the editor's request does not wait for the application.
@@ -343,6 +342,21 @@ final class NWP_Webhooks {
 		$args = apply_filters( 'nwp_webhook_request_args', $args, $change );
 
 		wp_remote_post( NWP_WEBHOOK_URL, $args );
+	}
+
+	/**
+	 * Computes the `X-NWP-Signature` value for a request.
+	 *
+	 * Must match the library's signature module (`nestjs-wordpress/signature`): both are checked
+	 * against the same test vectors (see wordpress-plugin/tests/signature-vectors.php).
+	 *
+	 * @param string $secret    Shared secret.
+	 * @param string $timestamp Unix timestamp in seconds, as sent in `X-NWP-Timestamp`.
+	 * @param string $body      Raw request body.
+	 * @return string `sha256=<hex HMAC-SHA256 of "<timestamp>.<body>">`.
+	 */
+	public static function sign( string $secret, string $timestamp, string $body ): string {
+		return 'sha256=' . hash_hmac( 'sha256', $timestamp . '.' . $body, $secret );
 	}
 
 	/**
