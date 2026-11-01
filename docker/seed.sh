@@ -7,8 +7,9 @@
 # collects the generated application password and writes apps/demo/.env.
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-COMPOSE=(docker compose -f "$ROOT_DIR/docker/docker-compose.yml")
+# `/bin/pwd -P` resolves the on-disk path spelling (see docker/compose.sh).
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && /bin/pwd -P)"
+COMPOSE=("$ROOT_DIR/docker/compose.sh")
 ENV_FILE="$ROOT_DIR/apps/demo/.env"
 WP_URL="${WP_URL:-http://localhost:8080}"
 WEBHOOK_SECRET="${NWP_WEBHOOK_SECRET:-dev-webhook-secret-change-me}"
