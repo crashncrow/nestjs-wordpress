@@ -36,11 +36,13 @@ CI runs all of these on every push and pull request.
 
 ## Releasing
 
-Versions and the changelog are managed with [Changesets](https://github.com/changesets/changesets):
+Versions and the changelog are managed with [Changesets](https://github.com/changesets/changesets): add one with `pnpm changeset` in your PR, and `pnpm changeset version` bumps the version and updates `CHANGELOG.md` when releasing.
 
-```bash
-pnpm changeset            # describe your change (in a PR)
-pnpm changeset version    # bump versions + update CHANGELOG.md (when releasing)
-pnpm --filter nestjs-wordpress check:package
-pnpm --filter nestjs-wordpress publish --access public
-```
+Publishing is done by [`.github/workflows/release.yml`](.github/workflows/release.yml), never from a laptop:
+
+1. Make sure `main` is green and `packages/nestjs-wordpress/package.json` has the version to release.
+2. Create a GitHub release with the tag `v<version>` (e.g. `v0.2.0-beta.1`). Mark pre-release versions as _pre-release_.
+3. Approve the `npm` environment when the workflow asks. It builds, tests and runs `npm stage publish --provenance`: versions with a pre-release part go to the `beta` dist-tag, others to `latest`. It also attaches the WordPress plugin as `nestjs-wordpress-webhooks.zip` to the release.
+4. Approve the staged version with 2FA on npmjs.com → _Staged Packages_ (or `npm stage approve`).
+
+The first release authenticates with a one-off, stage-only `NPM_TOKEN` secret on the `npm` environment. Once the package exists, configure npm trusted publishing (this workflow file, environment `npm`), then delete the secret and revoke the token.

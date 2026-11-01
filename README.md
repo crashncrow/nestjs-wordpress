@@ -9,7 +9,7 @@ Normalized content, tag-based caching and signed webhooks. Let editors work in W
 
 [Guide](packages/nestjs-wordpress/README.md) · [NestJS demo](apps/demo) · [Next.js demo](apps/web) · [WordPress plugin](wordpress-plugin) · [Docs](docs)
 
-> **Pre-release:** nestjs-wordpress is not on npm yet. APIs may still change before `1.0`.
+> **Beta:** nestjs-wordpress is on npm as a pre-release: `npm install nestjs-wordpress@beta`. APIs may still change before `1.0`.
 
 ```
 WordPress ──(REST)──▶ NestJS + nestjs-wordpress ──(JSON)──▶ web / mobile / Next.js

@@ -19,7 +19,7 @@ export class PostsController {
 - **Tag-based cache** (memory or Redis) invalidated by a small WordPress plugin through signed webhooks.
 - **Source-agnostic core**: services depend on a `ContentSource` contract, and WordPress is its first adapter.
 
-> Status: `0.x`. The API may change between minor versions until `1.0`.
+> **Beta:** nestjs-wordpress is on npm as a pre-release (`nestjs-wordpress@beta`). APIs may still change before `1.0`.
 
 ## Why
 
@@ -45,7 +45,7 @@ WordPress is a great editing experience, but its REST API is verbose, WordPress-
 **1. Install**
 
 ```bash
-npm install nestjs-wordpress
+npm install nestjs-wordpress@beta
 ```
 
 **2. Register the module**
@@ -321,7 +321,7 @@ WordPressModule.forRootAsync({
 });
 ```
 
-**2. In WordPress**, copy the plugin folder to `wp-content/plugins/`, activate it, and add to `wp-config.php`:
+**2. In WordPress**, install the plugin: download `nestjs-wordpress-webhooks.zip` from the [latest release](https://github.com/crashncrow/nestjs-wordpress/releases) and upload it in _Plugins → Add New → Upload Plugin_ (or copy the folder to `wp-content/plugins/`). Activate it and add to `wp-config.php`:
 
 ```php
 define( 'NWP_WEBHOOK_URL', 'https://api.example.com/webhooks/wordpress' );
