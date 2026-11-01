@@ -1,8 +1,8 @@
 # nestjs-wordpress
 
-## 0.2.0 (unreleased)
+## 0.2.0-beta.1
 
-First public release. It also contains the 0.1 milestone below, which was never published on its own.
+First public pre-release, on the `beta` dist-tag. It also contains the 0.1 milestone below, which was never published on its own.
 
 ### Caching and webhooks
 
