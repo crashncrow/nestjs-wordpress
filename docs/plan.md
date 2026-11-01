@@ -243,7 +243,8 @@ The filter is not applied globally by default: the app opts in.
    Data is read at request time (`connection()` / runtime params inside `<Suspense>`) so `next build` needs no backend;
    `revalidateTag(tag, { expire: 0 })` so editors see changes on the next load. Trade-off: with streaming, a missing
    entry renders the not-found UI (with `noindex`) under HTTP 200.
-4. CI, README, CONTRIBUTING, CHANGELOG, publint/attw, `npm pack --dry-run` (no publish).
+4. ✅ CI, README, CONTRIBUTING, CHANGELOG, publint/attw, `npm pack --dry-run` (no publish). Also PHPCS (WordPress
+   Coding Standards) for the plugin, Changesets for releases; version `0.2.0`, not published.
 
 ## Open points
 
