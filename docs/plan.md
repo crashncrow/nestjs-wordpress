@@ -63,13 +63,13 @@ packages/nestjs-wordpress/src/
 | Lint / format   | oxlint + Prettier                                                                                                   | Nest 12 starter default.                                                             |
 | Package checks  | `publint` + `@arethetypeswrong/cli`                                                                                 | Catches broken `exports`/types before publishing.                                    |
 | Releases        | Changesets                                                                                                          | Conventional changelog per package.                                                  |
-| Node            | `engines: >=22.19` (keyv 6 floor); CI matrix 22 / 24 / 26                                                           |                                                                                      |
+| Node            | `engines: >=22.12` (stable `require(esm)`); CI matrix 22 / 24 / 26                                                  |                                                                                      |
 
 **Library dependencies:**
 
 - `dependencies`: `cacheable`.
 - `peerDependencies`: `@nestjs/common ^12`, `@nestjs/core ^12`, `reflect-metadata`, `rxjs`.
-- Optional peers: `@nestjs/event-emitter ^12`, `@keyv/redis ^6`.
+- Optional peers: `@nestjs/event-emitter ^12`, `@keyv/redis ^5` (v5 matches the keyv 5 used by `cacheable` 2.5; v6 is keyv 6).
 - `devDependencies`: `wp-types`.
 
 **Root scripts:**
@@ -88,7 +88,7 @@ WordPressModule.forRoot({
   auth: { username: 'api', applicationPassword: 'xxxx xxxx …' }, // optional: drafts/preview, menus
   timeout: 10_000,
   rewriteUrls: true,            // absolute WP URLs -> relative paths in content, links, menus
-  cache: { ttl: 300_000, redis: 'redis://localhost:6379' } /* or false; memory when no redis */,
+  cache: { ttl: 300_000, redis: 'redis://localhost:6379' } /* opt-in; memory when no redis */,
   webhook: { secret: process.env.X },   // the app passes it; the library never reads env
   isGlobal: true,
 });
@@ -210,7 +210,9 @@ The filter is not applied globally by default: the app opts in.
 
 **Cache behavior:**
 
-- Cache keys are a stable hash of the method and its params.
+- Cache keys are a stable serialization of the method and its params. Caching is **opt-in** (`cache: true | {...}`).
+- **Store layout:** memory by default; with Redis, Redis is the _only_ store. cacheable 2.5 with an in-memory primary in front of a Redis secondary serves stale copies on other instances after a tag invalidation (reproduced and covered by `test/integration/redis-tagged-cache.spec.ts`).
+- Path lookups are tagged with `type:<type>` (a parent rename changes child paths).
 - Authenticated/preview reads are **never cached**.
 
 **Signature:**
@@ -223,10 +225,10 @@ The filter is not applied globally by default: the app opts in.
 
 **PHP plugin** (PHP 8.1+, WPCS):
 
-- **Hooks:** `save_post`, `transition_post_status`, `delete_post`, `edited_term`, `delete_term`, `wp_update_nav_menu`.
+- **Hooks:** `transition_post_status` (covers what `save_post` would, plus unpublish/trash), `before_delete_post`, `created_term`, `edited_term`, `delete_term`, `wp_update_nav_menu`, `wp_update_nav_menu_item`, `wp_delete_nav_menu`.
 - **Filtering:** skips autosaves and revisions.
 - **Batching:** collects changes during the request and sends them once on `shutdown` (`save_post` fires several times per edit).
-- **Sending:** `wp_remote_post(..., ['blocking' => false])`.
+- **Sending:** `wp_remote_post(..., ['blocking' => false])` for web requests. WP-CLI and cron send blocking: measured 0/5 webhooks delivered non-blocking from WP-CLI (the process exits first) vs 5/5 from web requests. Filterable via `nwp_webhook_blocking`.
 - **Constants:** `NWP_WEBHOOK_URL`, `NWP_WEBHOOK_SECRET`, plus opt-in `NWP_PUBLIC_MENUS`, which adds the `rest_menu_read_access` filter so menus can be read without auth.
 
 ## 5. Phases
