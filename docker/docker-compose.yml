@@ -1,0 +1,99 @@
+# Local development stack for nestjs-wordpress.
+#
+#   pnpm wp:up     -> mysql + wordpress + redis
+#   pnpm wp:seed   -> runs docker/seed.sh (uses the `wpcli` service, profile "seed")
+#   pnpm wp:down   -> stop everything (add `-v` manually to wipe data)
+#
+# NestJS runs on the host during development. WordPress reaches it through
+# host.docker.internal (built in on Docker Desktop, mapped via host-gateway on Linux).
+name: nestjs-wordpress
+
+x-wordpress-env: &wordpress-env
+  WORDPRESS_DB_HOST: mysql:3306
+  WORDPRESS_DB_USER: wordpress
+  WORDPRESS_DB_PASSWORD: wordpress
+  WORDPRESS_DB_NAME: wordpress
+  NWP_WEBHOOK_URL: ${NWP_WEBHOOK_URL:-http://host.docker.internal:3000/webhooks/wordpress}
+  NWP_WEBHOOK_SECRET: ${NWP_WEBHOOK_SECRET:-dev-webhook-secret-change-me}
+  # Everything below is appended to wp-config.php by the image entrypoint.
+  # - WP_ENVIRONMENT_TYPE=local enables application passwords over plain HTTP.
+  # - NWP_* constants configure the webhook plugin (read from container env).
+  WORDPRESS_CONFIG_EXTRA: |
+    define( 'WP_ENVIRONMENT_TYPE', 'local' );
+    define( 'NWP_WEBHOOK_URL', getenv( 'NWP_WEBHOOK_URL' ) );
+    define( 'NWP_WEBHOOK_SECRET', getenv( 'NWP_WEBHOOK_SECRET' ) );
+    define( 'NWP_PUBLIC_MENUS', true );
+
+x-wordpress-volumes: &wordpress-volumes
+  - wordpress:/var/www/html
+  - ../wordpress-plugin/nestjs-wordpress-webhooks:/var/www/html/wp-content/plugins/nestjs-wordpress-webhooks:ro
+  - ./mu-plugins:/var/www/html/wp-content/mu-plugins:ro
+
+services:
+  mysql:
+    image: mysql:9.7
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    volumes:
+      - mysql:/var/lib/mysql
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', '127.0.0.1', '-uroot', '-proot']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  wordpress:
+    image: wordpress:7.1-php8.4-apache
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - '8080:80'
+    environment: *wordpress-env
+    volumes: *wordpress-volumes
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    healthcheck:
+      # Any HTTP answer (even the "not installed" redirect) means Apache + PHP are up.
+      test:
+        [
+          'CMD-SHELL',
+          'php -r "exit(@file_get_contents(\"http://localhost/wp-includes/images/blank.gif\") === false ? 1 : 0);"',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:8.8
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  wpcli:
+    image: wordpress:cli-2.12.0-php8.4
+    profiles: ['seed']
+    # The CLI image runs as uid 82 (alpine www-data) while the apache image uses uid 33.
+    # Matching uid 33 avoids permission errors on files shared through the volume.
+    user: '33:33'
+    depends_on:
+      wordpress:
+        condition: service_healthy
+    environment:
+      <<: *wordpress-env
+      HOME: /tmp
+    volumes: *wordpress-volumes
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+
+volumes:
+  mysql:
+  wordpress:
