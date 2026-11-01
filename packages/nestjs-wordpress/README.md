@@ -252,14 +252,15 @@ Upstream 401/403 become 502 on purpose: the end client did nothing wrong and can
 
 ### Tokens and lower-level pieces
 
-| Export                                          | Use                                                                                                           |
-| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `CONTENT_SOURCE`                                | The `ContentSource` contract (cached when caching is on). Inject it to write source-agnostic code.            |
-| `CACHE_INVALIDATOR`                             | `{ invalidateTags(tags) }`, always injectable (a no-op when caching is off).                                  |
-| `TAGGED_CACHE`                                  | The full `TaggedCache` (`get` / `set` / `invalidateTags`).                                                    |
-| `tagsForResult`, `tagsForChange`, `ContentTags` | The invalidation contract (see [Caching](#caching)). Also at `nestjs-wordpress/invalidation`, without NestJS. |
-| `WordPressHttpClient`                           | The `fetch` client with base URL, auth, timeout and error mapping, for endpoints the services do not cover.   |
-| `HmacSignatureGuard`, `signWebhook`             | Verify or produce signatures in the webhook format.                                                           |
+| Export                                          | Use                                                                                                                                     |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `CONTENT_SOURCE`                                | The `ContentSource` contract (cached when caching is on). Inject it to write source-agnostic code.                                      |
+| `CACHE_INVALIDATOR`                             | `{ invalidateTags(tags) }`, always injectable (a no-op when caching is off).                                                            |
+| `TAGGED_CACHE`                                  | The full `TaggedCache` (`get` / `set` / `invalidateTags`).                                                                              |
+| `tagsForResult`, `tagsForChange`, `ContentTags` | The invalidation contract (see [Caching](#caching)). Also at `nestjs-wordpress/invalidation`, without NestJS.                           |
+| `WordPressHttpClient`                           | The `fetch` client with base URL, auth, timeout and error mapping, for endpoints the services do not cover.                             |
+| `signWebhook`, `verifyWebhook`                  | The webhook signature module (Web Crypto). Also at `nestjs-wordpress/signature`, without NestJS, for Edge runtimes and other receivers. |
+| `HmacSignatureGuard`                            | The Nest adapter around `verifyWebhook` used by the webhook controller.                                                                 |
 
 ## Caching
 
@@ -361,9 +362,21 @@ X-NWP-Signature: sha256=<hex HMAC-SHA256 of "<timestamp>.<raw body>" with the se
 {"event":"post.saved","type":"post","id":12,"slug":"hello-world","taxonomies":["category","post_tag"]}
 ```
 
-- **Signature checks:** the guard rejects bad signatures, tampered bodies and timestamps older than `toleranceSeconds`, comparing in constant time.
+- **Signature checks:** one module, `verifyWebhook`, rejects missing headers, bad signatures, tampered bodies and timestamps outside `toleranceSeconds`, comparing in constant time. It uses Web Crypto, so the same code verifies webhooks in Node, Edge runtimes and Workers:
+
+  ```ts
+  import { verifyWebhook } from 'nestjs-wordpress/signature';
+
+  const result = await verifyWebhook({
+    secret,
+    body: await request.text(),
+    headers: request.headers,
+  });
+  if (!result.ok) return new Response(result.reason, { status: 401 }); // 'missing-headers' | 'stale' | 'bad-signature'
+  ```
+
 - **Events:** `post.saved`/`post.deleted` (any post type, including `attachment`), `term.*`, `menu.*` and `user.*`. `taxonomies` lists the taxonomies a post's type uses, because publishing or removing it changes their term counts.
-- **Other senders:** anything can send a content change by signing it the same way, with `signWebhook(secret, body)`. To invalidate custom tags, inject `CACHE_INVALIDATOR` in your own code instead.
+- **Other senders:** anything can send a content change by signing it the same way, with `await signWebhook(secret, body)`. To invalidate custom tags, inject `CACHE_INVALIDATOR` in your own code instead.
 - **Blocking vs. non-blocking:** web requests send non-blocking so publishing stays fast. WP-CLI and cron send blocking, because measured from WP-CLI, non-blocking calls never left the process before it exited. Override with the `nwp_webhook_blocking` filter, and adjust requests with `nwp_webhook_request_args`.
 
 ## Local development environment

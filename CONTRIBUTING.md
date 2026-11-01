@@ -16,7 +16,7 @@ pnpm wp:up && pnpm wp:seed
 | Command                                        | What it runs                                                                          |
 | ---------------------------------------------- | ------------------------------------------------------------------------------------- |
 | `pnpm lint`                                    | oxlint + Prettier                                                                     |
-| `pnpm lint:php`                                | PHPCS with WordPress Coding Standards (in Docker)                                     |
+| `pnpm lint:php`                                | PHPCS with WordPress Coding Standards, plus the signature test vectors (in Docker)    |
 | `pnpm typecheck`                               | `tsc` in every package (build the library first: apps type-check against its `dist`)  |
 | `pnpm build`                                   | library, demo and Next.js app                                                         |
 | `pnpm test`                                    | library unit tests (mocked `fetch`); the Redis integration test runs when Redis is up |
@@ -32,6 +32,7 @@ CI runs all of these on every push and pull request.
 - **Public API:** everything is exported from `packages/nestjs-wordpress/src/index.ts`. Raw WordPress types (`wp-types`) must not leak into it.
 - **Tests:** library tests use fixtures recorded from the seeded WordPress (`test/fixtures`), so unit tests exercise real WordPress JSON.
 - **Cache tags** live only in the invalidation contract (`src/invalidation/index.ts`), covered by the table in `test/unit/invalidation.spec.ts`. The plugin sends content changes, never tags; the web app imports `nestjs-wordpress/invalidation`. Domain terms are in [GLOSSARY.md](GLOSSARY.md).
+- **Webhook signatures** live only in the signature module (`src/signature/index.ts`). The plugin's `NWP_Webhooks::sign()` must produce the same values: both are checked against `test/fixtures/signature-vectors.json`.
 
 ## Releasing
 

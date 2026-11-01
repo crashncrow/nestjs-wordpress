@@ -16,3 +16,6 @@ _Avoid_: invalidation request, tag list (for the webhook payload).
 **Result tags**: the cache tags derived from a cached result: its own identity tags plus the identity tags of everything it embeds (terms, author, featured image, the entries and terms linked from a menu). Dependencies are always read from the result, never guessed from the change.
 
 **Change tags**: the cache tags a content change invalidates: the changed object's identity tag, plus `type:<type>` for entries and `taxonomy:<name>` for the taxonomies whose counts it affects.
+
+**Webhook signature**: proof that a webhook body comes from a holder of the shared secret and is recent: `X-NWP-Signature: sha256=<hex HMAC-SHA256(secret, "<timestamp>.<raw body>")>` with `X-NWP-Timestamp`. One module signs and verifies it (`nestjs-wordpress/signature`); the WordPress plugin implements the same scheme, checked against shared test vectors.
+_Avoid_: shared-secret header, token (the secret is never sent).
