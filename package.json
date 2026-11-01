@@ -1,0 +1,28 @@
+{
+  "name": "nestjs-wordpress-monorepo",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "packageManager": "pnpm@12.14.0",
+  "engines": {
+    "node": ">=22.19"
+  },
+  "scripts": {
+    "wp:up": "docker compose -f docker/docker-compose.yml up -d --wait",
+    "wp:seed": "bash docker/seed.sh",
+    "wp:down": "docker compose -f docker/docker-compose.yml --profile seed down",
+    "dev": "pnpm --filter nestjs-wordpress build && pnpm --parallel --filter nestjs-wordpress --filter demo run dev",
+    "build": "pnpm -r run build",
+    "typecheck": "pnpm -r run typecheck",
+    "lint": "oxlint && prettier --check .",
+    "format": "prettier --write .",
+    "test": "pnpm -r run test",
+    "test:e2e": "pnpm --filter nestjs-wordpress build && pnpm --filter demo run test:e2e"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "oxlint": "^1.90.0",
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3"
+  }
+}
