@@ -15,8 +15,7 @@ async function api<T>(path: string): Promise<T | null> {
 /*
  * Every reader below is a 'use cache' function: its result is cached by Next.js and tagged
  * with the same tags the NestJS cache uses. Freshness comes from webhooks (revalidateTag via
- * /api/revalidate), so the server-side lifetime can be long; see the `cms` profile in
- * next.config.ts for the client-side part.
+ * /api/revalidate), so the time-based lifetime can be long.
  *
  * Tags can be added after the fetch, which matters for lookups by slug/path: the entry ID
  * (and its terms) is only known once the response arrives.
@@ -24,7 +23,7 @@ async function api<T>(path: string): Promise<T | null> {
 
 export async function getHome(): Promise<HomeView | null> {
   'use cache';
-  cacheLife('cms');
+  cacheLife('days');
   // The aggregate depends on the home page, the primary menu, recent posts and categories.
   cacheTag(tags.type('page'), tags.type('post'), tags.taxonomy('category'), tags.menus);
   return api<HomeView>('/home');
@@ -32,14 +31,14 @@ export async function getHome(): Promise<HomeView | null> {
 
 export async function getPrimaryMenu(): Promise<Menu | null> {
   'use cache';
-  cacheLife('cms');
+  cacheLife('days');
   cacheTag(tags.menus);
   return api<Menu>('/menus/primary');
 }
 
 export async function getPosts(page: number, category?: string): Promise<Paginated<Post> | null> {
   'use cache';
-  cacheLife('cms');
+  cacheLife('days');
   const query = new URLSearchParams({ page: String(page), perPage: '6' });
   if (category) query.set('category', category);
 
@@ -51,7 +50,7 @@ export async function getPosts(page: number, category?: string): Promise<Paginat
 
 export async function getPost(slug: string): Promise<Post | null> {
   'use cache';
-  cacheLife('cms');
+  cacheLife('days');
   const post = await api<Post>(`/posts/${encodeURIComponent(slug)}`);
   // A missing post is cached too; publishing one sends `type:post`, which clears it.
   cacheTag(...(post ? entryTags(post) : [tags.type('post')]));
@@ -60,7 +59,7 @@ export async function getPost(slug: string): Promise<Post | null> {
 
 export async function getPage(path: string): Promise<Page | null> {
   'use cache';
-  cacheLife('cms');
+  cacheLife('days');
   const page = await api<Page>(`/pages/${path.split('/').map(encodeURIComponent).join('/')}`);
   // A page path depends on its ancestors' slugs, so it is also tied to the whole type.
   cacheTag(tags.type('page'), ...(page ? entryTags(page) : []));
@@ -69,7 +68,7 @@ export async function getPage(path: string): Promise<Page | null> {
 
 export async function getCategory(slug: string): Promise<Term | null> {
   'use cache';
-  cacheLife('cms');
+  cacheLife('days');
   const term = await api<Term>(`/categories/${encodeURIComponent(slug)}`);
   cacheTag(tags.taxonomy('category'), ...(term ? [tags.term(term.id)] : []));
   return term;
