@@ -21,7 +21,7 @@
     "vitest/expect-expect": [
       "error",
       {
-        "assertFunctionNames": ["expect", "request.**.expect", "http.**.expect"]
+        "assertFunctionNames": ["expect", "request.**.expect", "http.**.expect", "send.expect"]
       }
     ],
     "eslint/no-underscore-dangle": [

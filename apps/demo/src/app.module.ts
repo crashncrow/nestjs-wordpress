@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ContentExceptionFilter, WordPressModule } from 'nestjs-wordpress';
+import { ContentChangesListener } from './content-events/content-changes.listener.js';
 import { HealthController } from './health.controller.js';
 import { HomeController } from './home/home.controller.js';
 import { HomeService } from './home/home.service.js';
@@ -13,8 +15,12 @@ import { PostsController } from './posts/posts.controller.js';
   imports: [
     // The *app* reads .env through @nestjs/config; the library itself never touches process.env.
     ConfigModule.forRoot({ isGlobal: true }),
+    // Enables the `wordpress.content.updated` event; the library detects it at runtime.
+    EventEmitterModule.forRoot(),
     // forRootAsync lets the options depend on other providers (here, ConfigService).
     WordPressModule.forRootAsync({
+      // Static "extra": decides at module definition time whether the controller is mounted.
+      webhookController: { path: 'webhooks/wordpress' },
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         baseUrl: config.getOrThrow<string>('WP_URL'),
@@ -24,6 +30,13 @@ import { PostsController } from './posts/posts.controller.js';
               applicationPassword: config.getOrThrow<string>('WP_APP_PASSWORD'),
             }
           : undefined,
+        // Redis when configured (shared by all instances), in-process memory otherwise.
+        cache: {
+          ttl: 10 * 60_000,
+          redis: config.get<string>('REDIS_URL'),
+          namespace: config.get<string>('CACHE_NAMESPACE', 'nestjs-wordpress-demo'),
+        },
+        webhook: { secret: config.getOrThrow<string>('WP_WEBHOOK_SECRET') },
       }),
     }),
   ],
@@ -39,6 +52,7 @@ import { PostsController } from './posts/posts.controller.js';
     // DI graph: it gets HttpAdapterHost injected and is active in e2e tests too.
     { provide: APP_FILTER, useClass: ContentExceptionFilter },
     HomeService,
+    ContentChangesListener,
   ],
 })
 export class AppModule {}
