@@ -1,0 +1,80 @@
+{
+  "status": 200,
+  "headers": {
+    "x-wp-total": "1",
+    "x-wp-totalpages": "1"
+  },
+  "body": [
+    {
+      "id": 8,
+      "date": "2026-10-21T19:57:26",
+      "date_gmt": "2026-10-21T19:57:26",
+      "modified": "2026-10-21T19:57:26",
+      "modified_gmt": "2026-10-21T19:57:26",
+      "slug": "demo-post-2",
+      "status": "publish",
+      "type": "post",
+      "link": "https://cms.example.com/demo-post-2/",
+      "title": {
+        "rendered": "Demo post 2"
+      },
+      "content": {
+        "rendered": "<p>This is demo post number 2.</p>\n<p>Read the <a href=\"https://cms.example.com/about/\">about page</a> or <a href=\"https://cms.example.com/demo-post-1/\">the first post</a>.</p>\n<p><!--more--></p>\n<p>More content for post 2.</p>\n",
+        "protected": false
+      },
+      "excerpt": {
+        "rendered": "<p>Short excerpt for demo post 2.</p>\n",
+        "protected": false
+      },
+      "author": 2,
+      "featured_media": 0,
+      "comment_status": "open",
+      "ping_status": "open",
+      "sticky": false,
+      "template": "",
+      "format": "standard",
+      "meta": {
+        "footnotes": ""
+      },
+      "categories": [2],
+      "tags": [6],
+      "_embedded": {
+        "author": [
+          {
+            "id": 2,
+            "name": "Jane Writer",
+            "url": "",
+            "description": "",
+            "link": "https://cms.example.com/author/writer/",
+            "slug": "writer",
+            "avatar_urls": {
+              "24": "https://secure.gravatar.com/avatar/22b353978fd43342af472d53e78d3a087021c5108f4b50ad332ae190fa6c41b2?s=24&d=mm&r=g",
+              "48": "https://secure.gravatar.com/avatar/22b353978fd43342af472d53e78d3a087021c5108f4b50ad332ae190fa6c41b2?s=48&d=mm&r=g",
+              "96": "https://secure.gravatar.com/avatar/22b353978fd43342af472d53e78d3a087021c5108f4b50ad332ae190fa6c41b2?s=96&d=mm&r=g"
+            }
+          }
+        ],
+        "wp:term": [
+          [
+            {
+              "id": 2,
+              "link": "https://cms.example.com/category/news/",
+              "name": "News",
+              "slug": "news",
+              "taxonomy": "category"
+            }
+          ],
+          [
+            {
+              "id": 6,
+              "link": "https://cms.example.com/tag/wordpress/",
+              "name": "wordpress",
+              "slug": "wordpress",
+              "taxonomy": "post_tag"
+            }
+          ]
+        ]
+      }
+    }
+  ]
+}

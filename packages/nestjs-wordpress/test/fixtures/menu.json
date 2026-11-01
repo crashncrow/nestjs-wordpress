@@ -1,0 +1,16 @@
+{
+  "status": 200,
+  "headers": {
+    "x-wp-total": null,
+    "x-wp-totalpages": null
+  },
+  "body": {
+    "id": 10,
+    "description": "",
+    "name": "Primary menu",
+    "slug": "primary-menu",
+    "meta": [],
+    "locations": ["primary"],
+    "auto_add": false
+  }
+}

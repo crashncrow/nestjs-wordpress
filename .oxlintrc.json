@@ -23,6 +23,12 @@
       {
         "assertFunctionNames": ["expect", "request.**.expect"]
       }
+    ],
+    "eslint/no-underscore-dangle": [
+      "warn",
+      {
+        "allow": ["_embedded", "_embed", "_fields", "_links"]
+      }
     ]
   },
   "ignorePatterns": ["dist", "coverage", "wordpress-plugin"]

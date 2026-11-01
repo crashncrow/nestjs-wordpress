@@ -1,0 +1,119 @@
+{
+  "status": 200,
+  "headers": {
+    "x-wp-total": "5",
+    "x-wp-totalpages": "1"
+  },
+  "body": [
+    {
+      "id": 29,
+      "title": {
+        "rendered": "Home"
+      },
+      "status": "publish",
+      "url": "https://cms.example.com/",
+      "attr_title": "",
+      "description": "",
+      "type": "custom",
+      "type_label": "Custom Link",
+      "object": "custom",
+      "object_id": 29,
+      "parent": 0,
+      "menu_order": 0,
+      "target": "",
+      "classes": [""],
+      "xfn": [""],
+      "invalid": false,
+      "meta": [],
+      "menus": 10
+    },
+    {
+      "id": 30,
+      "title": {
+        "rendered": "About"
+      },
+      "status": "publish",
+      "url": "https://cms.example.com/about/",
+      "attr_title": "",
+      "description": "",
+      "type": "post_type",
+      "type_label": "Page",
+      "object": "page",
+      "object_id": 21,
+      "parent": 0,
+      "menu_order": 2,
+      "target": "",
+      "classes": [""],
+      "xfn": [""],
+      "invalid": false,
+      "meta": [],
+      "menus": 10
+    },
+    {
+      "id": 31,
+      "title": {
+        "rendered": "Team"
+      },
+      "status": "publish",
+      "url": "https://cms.example.com/about/team/",
+      "attr_title": "",
+      "description": "",
+      "type": "post_type",
+      "type_label": "Page",
+      "object": "page",
+      "object_id": 22,
+      "parent": 30,
+      "menu_order": 3,
+      "target": "",
+      "classes": [""],
+      "xfn": [""],
+      "invalid": false,
+      "meta": [],
+      "menus": 10
+    },
+    {
+      "id": 32,
+      "title": {
+        "rendered": "News"
+      },
+      "status": "publish",
+      "url": "https://cms.example.com/category/news/",
+      "attr_title": "",
+      "description": "",
+      "type": "taxonomy",
+      "type_label": "Category",
+      "object": "category",
+      "object_id": 2,
+      "parent": 0,
+      "menu_order": 4,
+      "target": "",
+      "classes": [""],
+      "xfn": [""],
+      "invalid": false,
+      "meta": [],
+      "menus": 10
+    },
+    {
+      "id": 33,
+      "title": {
+        "rendered": "GitHub"
+      },
+      "status": "publish",
+      "url": "https://github.com/crashncrow/nestjs-wordpress",
+      "attr_title": "",
+      "description": "",
+      "type": "custom",
+      "type_label": "Custom Link",
+      "object": "custom",
+      "object_id": 33,
+      "parent": 0,
+      "menu_order": 5,
+      "target": "",
+      "classes": [""],
+      "xfn": [""],
+      "invalid": false,
+      "meta": [],
+      "menus": 10
+    }
+  ]
+}

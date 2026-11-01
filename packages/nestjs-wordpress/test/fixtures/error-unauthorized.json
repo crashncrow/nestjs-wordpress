@@ -1,0 +1,14 @@
+{
+  "status": 401,
+  "headers": {
+    "x-wp-total": null,
+    "x-wp-totalpages": null
+  },
+  "body": {
+    "code": "rest_cannot_view",
+    "message": "Sorry, you are not allowed to view menu locations.",
+    "data": {
+      "status": 401
+    }
+  }
+}

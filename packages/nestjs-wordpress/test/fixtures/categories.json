@@ -1,0 +1,53 @@
+{
+  "status": 200,
+  "headers": {
+    "x-wp-total": "4",
+    "x-wp-totalpages": "1"
+  },
+  "body": [
+    {
+      "id": 4,
+      "count": 4,
+      "description": "",
+      "link": "https://cms.example.com/category/tutorials/nestjs/",
+      "name": "NestJS",
+      "slug": "nestjs",
+      "taxonomy": "category",
+      "parent": 3,
+      "meta": []
+    },
+    {
+      "id": 2,
+      "count": 8,
+      "description": "",
+      "link": "https://cms.example.com/category/news/",
+      "name": "News",
+      "slug": "news",
+      "taxonomy": "category",
+      "parent": 0,
+      "meta": []
+    },
+    {
+      "id": 3,
+      "count": 0,
+      "description": "",
+      "link": "https://cms.example.com/category/tutorials/",
+      "name": "Tutorials",
+      "slug": "tutorials",
+      "taxonomy": "category",
+      "parent": 0,
+      "meta": []
+    },
+    {
+      "id": 1,
+      "count": 0,
+      "description": "",
+      "link": "https://cms.example.com/category/uncategorized/",
+      "name": "Uncategorized",
+      "slug": "uncategorized",
+      "taxonomy": "category",
+      "parent": 0,
+      "meta": []
+    }
+  ]
+}

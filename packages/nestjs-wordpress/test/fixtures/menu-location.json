@@ -1,0 +1,12 @@
+{
+  "status": 200,
+  "headers": {
+    "x-wp-total": null,
+    "x-wp-totalpages": null
+  },
+  "body": {
+    "name": "primary",
+    "description": "Primary",
+    "menu": 10
+  }
+}

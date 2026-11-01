@@ -1,0 +1,14 @@
+{
+  "status": 400,
+  "headers": {
+    "x-wp-total": null,
+    "x-wp-totalpages": null
+  },
+  "body": {
+    "code": "rest_post_invalid_page_number",
+    "message": "The page number requested is larger than the number of pages available.",
+    "data": {
+      "status": 400
+    }
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "status": 200,
+  "headers": {
+    "x-wp-total": "2",
+    "x-wp-totalpages": "1"
+  },
+  "body": [
+    {
+      "id": 25,
+      "date": "2026-11-01T19:57:35",
+      "date_gmt": "2026-11-01T19:57:35",
+      "modified": "2026-11-01T19:57:35",
+      "modified_gmt": "2026-11-01T19:57:35",
+      "slug": "team",
+      "status": "publish",
+      "type": "page",
+      "link": "https://cms.example.com/services/team/",
+      "title": {
+        "rendered": "Services team"
+      },
+      "content": {
+        "rendered": "<p>Services team.</p>\n",
+        "protected": false
+      },
+      "excerpt": {
+        "rendered": "<p>Services team.</p>\n",
+        "protected": false
+      },
+      "author": 1,
+      "featured_media": 0,
+      "parent": 24,
+      "menu_order": 0,
+      "comment_status": "closed",
+      "ping_status": "closed",
+      "template": "",
+      "meta": {
+        "footnotes": ""
+      },
+      "_embedded": {
+        "author": [
+          {
+            "id": 1,
+            "name": "admin",
+            "url": "https://cms.example.com",
+            "description": "",
+            "link": "https://cms.example.com/author/admin/",
+            "slug": "admin",
+            "avatar_urls": {
+              "24": "https://secure.gravatar.com/avatar/258d8dc916db8cea2cafb6c3cd0cb0246efe061421dbd83ec3a350428cabda4f?s=24&d=mm&r=g",
+              "48": "https://secure.gravatar.com/avatar/258d8dc916db8cea2cafb6c3cd0cb0246efe061421dbd83ec3a350428cabda4f?s=48&d=mm&r=g",
+              "96": "https://secure.gravatar.com/avatar/258d8dc916db8cea2cafb6c3cd0cb0246efe061421dbd83ec3a350428cabda4f?s=96&d=mm&r=g"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 22,
+      "date": "2026-11-01T19:57:34",
+      "date_gmt": "2026-11-01T19:57:34",
+      "modified": "2026-11-01T19:57:34",
+      "modified_gmt": "2026-11-01T19:57:34",
+      "slug": "team",
+      "status": "publish",
+      "type": "page",
+      "link": "https://cms.example.com/about/team/",
+      "title": {
+        "rendered": "Team"
+      },
+      "content": {
+        "rendered": "<p>The team.</p>\n",
+        "protected": false
+      },
+      "excerpt": {
+        "rendered": "<p>The team.</p>\n",
+        "protected": false
+      },
+      "author": 1,
+      "featured_media": 0,
+      "parent": 21,
+      "menu_order": 0,
+      "comment_status": "closed",
+      "ping_status": "closed",
+      "template": "",
+      "meta": {
+        "footnotes": ""
+      },
+      "_embedded": {
+        "author": [
+          {
+            "id": 1,
+            "name": "admin",
+            "url": "https://cms.example.com",
+            "description": "",
+            "link": "https://cms.example.com/author/admin/",
+            "slug": "admin",
+            "avatar_urls": {
+              "24": "https://secure.gravatar.com/avatar/258d8dc916db8cea2cafb6c3cd0cb0246efe061421dbd83ec3a350428cabda4f?s=24&d=mm&r=g",
+              "48": "https://secure.gravatar.com/avatar/258d8dc916db8cea2cafb6c3cd0cb0246efe061421dbd83ec3a350428cabda4f?s=48&d=mm&r=g",
+              "96": "https://secure.gravatar.com/avatar/258d8dc916db8cea2cafb6c3cd0cb0246efe061421dbd83ec3a350428cabda4f?s=96&d=mm&r=g"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

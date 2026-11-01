@@ -1,0 +1,54 @@
+{
+  "status": 200,
+  "headers": {
+    "x-wp-total": null,
+    "x-wp-totalpages": null
+  },
+  "body": {
+    "category": {
+      "name": "Categories",
+      "slug": "category",
+      "description": "",
+      "types": ["post"],
+      "hierarchical": true,
+      "rest_base": "categories",
+      "rest_namespace": "wp/v2"
+    },
+    "post_tag": {
+      "name": "Tags",
+      "slug": "post_tag",
+      "description": "",
+      "types": ["post"],
+      "hierarchical": false,
+      "rest_base": "tags",
+      "rest_namespace": "wp/v2"
+    },
+    "nav_menu": {
+      "name": "Navigation Menus",
+      "slug": "nav_menu",
+      "description": "",
+      "types": ["nav_menu_item"],
+      "hierarchical": false,
+      "rest_base": "menus",
+      "rest_namespace": "wp/v2"
+    },
+    "wp_pattern_category": {
+      "name": "Pattern Categories",
+      "slug": "wp_pattern_category",
+      "description": "",
+      "types": ["wp_block"],
+      "hierarchical": false,
+      "rest_base": "wp_pattern_category",
+      "rest_namespace": "wp/v2"
+    },
+    "genre": {
+      "name": "Genres",
+      "slug": "genre",
+      "description": "",
+      "types": ["book"],
+      "hierarchical": true,
+      "rest_base": "genres",
+      "rest_namespace": "wp/v2"
+    }
+  }
+}

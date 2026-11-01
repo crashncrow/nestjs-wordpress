@@ -1,0 +1,241 @@
+{
+  "status": 200,
+  "headers": {
+    "x-wp-total": "12",
+    "x-wp-totalpages": "6"
+  },
+  "body": [
+    {
+      "id": 18,
+      "date": "2026-10-31T19:57:32",
+      "date_gmt": "2026-10-31T19:57:32",
+      "modified": "2026-10-31T19:57:32",
+      "modified_gmt": "2026-10-31T19:57:32",
+      "slug": "demo-post-12",
+      "status": "publish",
+      "type": "post",
+      "link": "https://cms.example.com/demo-post-12/",
+      "title": {
+        "rendered": "Demo post 12"
+      },
+      "content": {
+        "rendered": "<p>This is demo post number 12.</p>\n<p>Read the <a href=\"https://cms.example.com/about/\">about page</a> or <a href=\"https://cms.example.com/demo-post-1/\">the first post</a>.</p>\n<p><!--more--></p>\n<p>More content for post 12.</p>\n",
+        "protected": false
+      },
+      "excerpt": {
+        "rendered": "<p>Short excerpt for demo post 12.</p>\n",
+        "protected": false
+      },
+      "author": 2,
+      "featured_media": 4,
+      "comment_status": "open",
+      "ping_status": "open",
+      "sticky": false,
+      "template": "",
+      "format": "standard",
+      "meta": {
+        "footnotes": ""
+      },
+      "categories": [4],
+      "tags": [7, 5],
+      "_embedded": {
+        "author": [
+          {
+            "id": 2,
+            "name": "Jane Writer",
+            "url": "",
+            "description": "",
+            "link": "https://cms.example.com/author/writer/",
+            "slug": "writer",
+            "avatar_urls": {
+              "24": "https://secure.gravatar.com/avatar/22b353978fd43342af472d53e78d3a087021c5108f4b50ad332ae190fa6c41b2?s=24&d=mm&r=g",
+              "48": "https://secure.gravatar.com/avatar/22b353978fd43342af472d53e78d3a087021c5108f4b50ad332ae190fa6c41b2?s=48&d=mm&r=g",
+              "96": "https://secure.gravatar.com/avatar/22b353978fd43342af472d53e78d3a087021c5108f4b50ad332ae190fa6c41b2?s=96&d=mm&r=g"
+            }
+          }
+        ],
+        "wp:featuredmedia": [
+          {
+            "id": 4,
+            "date": "2026-11-01T19:57:24",
+            "slug": "cover-blue",
+            "type": "attachment",
+            "link": "https://cms.example.com/cover-blue/",
+            "title": {
+              "rendered": "cover-blue"
+            },
+            "author": 0,
+            "featured_media": 0,
+            "caption": {
+              "rendered": ""
+            },
+            "alt_text": "Cover image cover-blue",
+            "media_type": "image",
+            "mime_type": "image/png",
+            "media_details": {
+              "width": 1200,
+              "height": 630,
+              "file": "2026/11/cover-blue.png",
+              "filesize": 3653,
+              "sizes": {
+                "medium": {
+                  "file": "cover-blue-300x158.png",
+                  "width": 300,
+                  "height": 158,
+                  "filesize": 627,
+                  "mime_type": "image/png",
+                  "source_url": "https://cms.example.com/wp-content/uploads/2026/11/cover-blue-300x158.png"
+                },
+                "large": {
+                  "file": "cover-blue-1024x538.png",
+                  "width": 1024,
+                  "height": 538,
+                  "filesize": 3476,
+                  "mime_type": "image/png",
+                  "source_url": "https://cms.example.com/wp-content/uploads/2026/11/cover-blue-1024x538.png"
+                },
+                "thumbnail": {
+                  "file": "cover-blue-150x150.png",
+                  "width": 150,
+                  "height": 150,
+                  "filesize": 489,
+                  "mime_type": "image/png",
+                  "source_url": "https://cms.example.com/wp-content/uploads/2026/11/cover-blue-150x150.png"
+                },
+                "medium_large": {
+                  "file": "cover-blue-768x403.png",
+                  "width": 768,
+                  "height": 403,
+                  "filesize": 2177,
+                  "mime_type": "image/png",
+                  "source_url": "https://cms.example.com/wp-content/uploads/2026/11/cover-blue-768x403.png"
+                },
+                "full": {
+                  "file": "cover-blue.png",
+                  "width": 1200,
+                  "height": 630,
+                  "mime_type": "image/png",
+                  "source_url": "https://cms.example.com/wp-content/uploads/2026/11/cover-blue.png"
+                }
+              },
+              "image_meta": {
+                "aperture": "0",
+                "credit": "",
+                "camera": "",
+                "caption": "",
+                "created_timestamp": "0",
+                "copyright": "",
+                "focal_length": "0",
+                "iso": "0",
+                "shutter_speed": "0",
+                "title": "",
+                "orientation": "0",
+                "keywords": [],
+                "alt": ""
+              }
+            },
+            "source_url": "https://cms.example.com/wp-content/uploads/2026/11/cover-blue.png"
+          }
+        ],
+        "wp:term": [
+          [
+            {
+              "id": 4,
+              "link": "https://cms.example.com/category/tutorials/nestjs/",
+              "name": "NestJS",
+              "slug": "nestjs",
+              "taxonomy": "category"
+            }
+          ],
+          [
+            {
+              "id": 7,
+              "link": "https://cms.example.com/tag/headless/",
+              "name": "headless",
+              "slug": "headless",
+              "taxonomy": "post_tag"
+            },
+            {
+              "id": 5,
+              "link": "https://cms.example.com/tag/nestjs/",
+              "name": "nestjs",
+              "slug": "nestjs",
+              "taxonomy": "post_tag"
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "id": 17,
+      "date": "2026-10-30T19:57:32",
+      "date_gmt": "2026-10-30T19:57:32",
+      "modified": "2026-10-30T19:57:32",
+      "modified_gmt": "2026-10-30T19:57:32",
+      "slug": "demo-post-11",
+      "status": "publish",
+      "type": "post",
+      "link": "https://cms.example.com/demo-post-11/",
+      "title": {
+        "rendered": "Demo post 11"
+      },
+      "content": {
+        "rendered": "<p>This is demo post number 11.</p>\n<p>Read the <a href=\"https://cms.example.com/about/\">about page</a> or <a href=\"https://cms.example.com/demo-post-1/\">the first post</a>.</p>\n<p><!--more--></p>\n<p>More content for post 11.</p>\n",
+        "protected": false
+      },
+      "excerpt": {
+        "rendered": "<p>Short excerpt for demo post 11.</p>\n",
+        "protected": false
+      },
+      "author": 1,
+      "featured_media": 0,
+      "comment_status": "open",
+      "ping_status": "open",
+      "sticky": false,
+      "template": "",
+      "format": "standard",
+      "meta": {
+        "footnotes": ""
+      },
+      "categories": [2],
+      "tags": [6],
+      "_embedded": {
+        "author": [
+          {
+            "id": 1,
+            "name": "admin",
+            "url": "https://cms.example.com",
+            "description": "",
+            "link": "https://cms.example.com/author/admin/",
+            "slug": "admin",
+            "avatar_urls": {
+              "24": "https://secure.gravatar.com/avatar/258d8dc916db8cea2cafb6c3cd0cb0246efe061421dbd83ec3a350428cabda4f?s=24&d=mm&r=g",
+              "48": "https://secure.gravatar.com/avatar/258d8dc916db8cea2cafb6c3cd0cb0246efe061421dbd83ec3a350428cabda4f?s=48&d=mm&r=g",
+              "96": "https://secure.gravatar.com/avatar/258d8dc916db8cea2cafb6c3cd0cb0246efe061421dbd83ec3a350428cabda4f?s=96&d=mm&r=g"
+            }
+          }
+        ],
+        "wp:term": [
+          [
+            {
+              "id": 2,
+              "link": "https://cms.example.com/category/news/",
+              "name": "News",
+              "slug": "news",
+              "taxonomy": "category"
+            }
+          ],
+          [
+            {
+              "id": 6,
+              "link": "https://cms.example.com/tag/wordpress/",
+              "name": "wordpress",
+              "slug": "wordpress",
+              "taxonomy": "post_tag"
+            }
+          ]
+        ]
+      }
+    }
+  ]
+}
