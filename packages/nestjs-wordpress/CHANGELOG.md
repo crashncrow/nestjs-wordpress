@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- `stripTags` (used for titles, excerpts and names) now repeats until nothing changes and drops leftover `<` from unterminated tags or comments (e.g. `a <!-- b`), so plain-text fields never contain markup (CodeQL `js/incomplete-multi-character-sanitization`).
+- Plain-text fields (titles, excerpts, term and menu names) can no longer contain markup: `stripTags` is now a linear scan that never copies `<`, and unterminated tags or comments (e.g. `a <!-- b`) are dropped (CodeQL `js/incomplete-multi-character-sanitization`).
 - Docs: `title`, `excerpt` and term/menu names are plain text with entities decoded; escape them before inserting into HTML.
 
 ## 0.2.0-beta.1
