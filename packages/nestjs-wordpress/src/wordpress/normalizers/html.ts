@@ -50,7 +50,9 @@ export function stripTags(html: string): string {
     previous = text;
     text = text.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]*>/g, ' ');
   } while (text !== previous);
-  return text;
+  // Whatever `<` is left starts an unterminated tag or comment (e.g. `a <!-- b`): rendered HTML
+  // encodes a literal `<` as `&lt;`, which is decoded later, so dropping raw ones loses no text.
+  return text.replaceAll('<', '');
 }
 
 /**

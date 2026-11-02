@@ -14,24 +14,33 @@ import {
   ContentUnauthorizedException,
 } from '../../src/index.js';
 
-// A Map, not an object: a route param must not reach Object.prototype (`constructor`, …).
-const EXCEPTIONS = new Map<string, new (message: string) => ContentSourceException>([
-  ['notFound', ContentNotFoundException],
-  ['badRequest', ContentBadRequestException],
-  ['unauthorized', ContentUnauthorizedException],
-  ['forbidden', ContentForbiddenException],
-  ['timeout', ContentSourceTimeoutException],
-  ['unavailable', ContentSourceUnavailableException],
-  ['base', ContentSourceException],
-]);
+// An explicit switch, not a lookup table: the route param never selects what gets invoked.
+function exceptionFor(kind: string, message: string): Error {
+  switch (kind) {
+    case 'notFound':
+      return new ContentNotFoundException(message);
+    case 'badRequest':
+      return new ContentBadRequestException(message);
+    case 'unauthorized':
+      return new ContentUnauthorizedException(message);
+    case 'forbidden':
+      return new ContentForbiddenException(message);
+    case 'timeout':
+      return new ContentSourceTimeoutException(message);
+    case 'unavailable':
+      return new ContentSourceUnavailableException(message);
+    case 'base':
+      return new ContentSourceException(message);
+    default:
+      return new NotFoundException();
+  }
+}
 
 @Controller()
 class ThrowingController {
   @Get(':kind')
   throw(@Param('kind') kind: string): never {
-    const Exception = EXCEPTIONS.get(kind);
-    if (!Exception) throw new NotFoundException();
-    throw new Exception('upstream detail that must not leak');
+    throw exceptionFor(kind, 'upstream detail that must not leak');
   }
 }
 
