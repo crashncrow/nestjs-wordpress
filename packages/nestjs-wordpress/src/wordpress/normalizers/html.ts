@@ -41,18 +41,29 @@ export function decodeEntities(text: string): string {
   });
 }
 
+/**
+ * Removes tags and comments with a single linear scan instead of regular expressions: each tag
+ * is skipped up to its `>` (each comment up to its `-->`), or to the end if it never closes.
+ * A `<` is never copied to the output, so the result cannot contain markup by construction.
+ * Rendered HTML encodes literal `<` in text as `&lt;`, which is decoded afterwards.
+ */
 export function stripTags(html: string): string {
-  // Repeat until nothing changes, so removing one tag or comment can never leave another one
-  // assembled from the leftovers (e.g. `<<b>i>` or nested comment markers).
-  let text = html;
-  let previous: string;
-  do {
-    previous = text;
-    text = text.replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]*>/g, ' ');
-  } while (text !== previous);
-  // Whatever `<` is left starts an unterminated tag or comment (e.g. `a <!-- b`): rendered HTML
-  // encodes a literal `<` as `&lt;`, which is decoded later, so dropping raw ones loses no text.
-  return text.replaceAll('<', '');
+  let text = '';
+  let i = 0;
+  while (i < html.length) {
+    if (html.startsWith('<!--', i)) {
+      const close = html.indexOf('-->', i + 4);
+      i = close === -1 ? html.length : close + 3;
+    } else if (html[i] === '<') {
+      const close = html.indexOf('>', i + 1);
+      i = close === -1 ? html.length : close + 1;
+      text += ' '; // tags separate words: `a<br>b` → `a b`
+    } else {
+      text += html[i];
+      i++;
+    }
+  }
+  return text;
 }
 
 /**
