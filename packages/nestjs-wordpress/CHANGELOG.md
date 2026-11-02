@@ -1,5 +1,12 @@
 # nestjs-wordpress
 
+## 0.2.0-beta.2
+
+### Fixes
+
+- `stripTags` (used for titles, excerpts and names) now repeats until nothing changes, so removing a tag or comment can never leave another one assembled from the leftovers (CodeQL `js/incomplete-multi-character-sanitization`).
+- Docs: `title`, `excerpt` and term/menu names are plain text with entities decoded; escape them before inserting into HTML.
+
 ## 0.2.0-beta.1
 
 First public pre-release, on the `beta` dist-tag. It also contains the 0.1 milestone below, which was never published on its own.

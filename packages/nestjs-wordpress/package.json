@@ -1,6 +1,6 @@
 {
   "name": "nestjs-wordpress",
-  "version": "0.2.0-beta.1",
+  "version": "0.2.0-beta.2",
   "description": "Use WordPress as a headless content source in NestJS: normalized DTOs, tag-based caching and signed webhooks.",
   "keywords": [
     "nestjs",

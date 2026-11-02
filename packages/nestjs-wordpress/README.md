@@ -394,6 +394,7 @@ pnpm dev:web                 # terminal 2: Next.js on :3001
 
 ## Known limitations
 
+- **`rawBody: true` is checked per request, not at startup:** NestJS does not expose that option to providers, so without it the first webhook answers 500 and logs how to fix it.
 - **Pretty permalinks are required:** the `?rest_route=` fallback is not supported.
 - **Path lookups** (`getByPath`) are invalidated by any change to that type. That is coarse, but a renamed parent changes its children's paths.
 - **Assigning a menu to a theme location** does not send a webhook. The TTL covers it.
